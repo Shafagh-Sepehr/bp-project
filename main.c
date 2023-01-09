@@ -45,7 +45,7 @@ void ocpl_clean(bool* ocpl);
 void menu(bool* ocpl);
 void sign_up(void);
 void log_in(void);
-void show_counter(int x, int y, int sec);
+void countdown(int x, int y, int sec);
 
 int main()
 {
@@ -152,7 +152,7 @@ void menu(bool* ocpl) {
 			ocpl_clean(ocpl);
 			gotoxy(l_padding("Thanks For Your Time"), 10);
 			printf("Thanks For Your Time");
-			show_counter(l_padding("0"), wherey()+1,3);
+			countdown(l_padding("0"), wherey()+1,3);
 
 			
 			system("cls");
@@ -165,7 +165,7 @@ void menu(bool* ocpl) {
 	}
 }
 
-void show_counter(int x, int y, int sec) {
+void countdown(int x, int y, int sec) {
 	for (int i = sec; i >= 0; i--) {
 		gotoxy(x, y);
 		printf("%d", i);
