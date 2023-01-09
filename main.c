@@ -37,7 +37,8 @@ typedef struct user {
 
 
 void my_callback_on_key_arrival(char c);
-void welcome(void);
+void print_frame(void);
+void welcome(bool* ocpl);
 int l_padding(char str[I]);
 void ocpl_clean(bool* ocpl);
 
@@ -47,12 +48,7 @@ int main()
 
    bool ocpl[35];//occupied_lines
 
-   for (int i = 0; i < I; i++) {
-       for (int j = 0; j < J; j++) {
-               printf(  (i == 0 || j == 0 || i + 1 == I || j + 1 == J)  ? "*" : " ");
-       }
-       printf("\n");
-   }
+   print_frame();
    welcome(ocpl);
    _sleep(3000);
    ocpl_clean(ocpl);
@@ -72,6 +68,15 @@ void my_callback_on_key_arrival(char c) {
     exit(0);
 }
 
+void print_frame(void){
+    for (int i = 0; i < I; i++) {
+        for (int j = 0; j < J; j++) {
+            printf((i == 0 || j == 0 || i + 1 == I || j + 1 == J) ? "*" : " ");
+        }
+        printf("\n");
+    }
+}
+
 void welcome(bool * ocpl){
     gotoxy(l_padding("welcome"), 6);
     printf("WELCOME");
@@ -88,9 +93,11 @@ void welcome(bool * ocpl){
     gotoxy(0, 30);//reset line to the end
 }
 
-int l_padding(char str[30]) {
+int l_padding(char str[I]) {
     return (J - strlen(str)) / 2;
 }
+
+
 
 void ocpl_clean(bool* ocpl) {
     char space[] = "                        ";//25 spaces
