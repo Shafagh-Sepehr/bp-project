@@ -43,9 +43,10 @@ void welcome(bool* ocpl);
 int l_padding(char str[I]);
 void ocpl_clean(bool* ocpl);
 void menu(bool* ocpl);
-void sign_up(void);
+void sign_up(bool *ocpl);
 void log_in(void);
 void countdown(int x, int y, int sec);
+void print(char* str, char* padding, int y, bool* ocpl, bool a);
 
 int main()
 {
@@ -95,44 +96,40 @@ void print_frame(void) {
 }
 
 void welcome(bool* ocpl) {
-	gotoxy(l_padding("welcome"), 6);
-	printf("WELCOME");
-	ocpl[6] = false;
+	
+	print("WELCOME", "", 6, ocpl, false );
 
-	gotoxy(l_padding("TYPING GAME"), 8);
-	printf("TYPING GAME");
-	ocpl[8] = false;
+	
+	print("TYPING GAME", "", 8, ocpl, false);
 
-	gotoxy(l_padding("press any key..."), 11);
-	printf("press any key...");
-	ocpl[11] = false;
+	
+	print("press any key...", "", 11, ocpl, false);
 
-	gotoxy(l_padding("by shafagh sepehr"), 27);
-	printf("by shafagh sepehr");
-	ocpl[27] = false;
-
-
-
+	
+	print("by shafagh sepehr", "", 27, ocpl, false);
 
 
 	gotoxy(0, 30);//reset line to the end
 }
+void print(char* str, char* padding, int y, bool* ocpl,bool a) {// a determines if padding must be used
+	if(a)
+		gotoxy(l_padding(padding), y);
+	else
+		gotoxy(l_padding(str), y);
 
-
-
+	printf("%s",str);
+	ocpl[y] = false;
+}
 
 void menu(bool* ocpl) {
-	gotoxy(l_padding("1-Sign In"), 9);
-	printf("1-Sign In");
-	ocpl[9] = false;
+	
+	print("1-Sign Up", "", 9, ocpl, false);
 
-	gotoxy(l_padding("1-Sign In"), 10);
-	printf("2-Log In");
-	ocpl[10] = false;
+	
+	print("2-Log In", "1-Sign In", 10, ocpl, true);
 
-	gotoxy(l_padding("1-Sign In"), 11);
-	printf("3-Exit");
-	ocpl[11] = false;
+	
+	print("3-Exit", "1-Sign In", 11, ocpl, true);
 
 	while (1) {
 		int ch = getch();
@@ -140,7 +137,7 @@ void menu(bool* ocpl) {
 		switch (ch) {
 		case 1:
 			ocpl_clean(ocpl);
-
+			sign_up(ocpl);
 			break;
 
 		case 2:
@@ -150,8 +147,9 @@ void menu(bool* ocpl) {
 
 		case 3://exit
 			ocpl_clean(ocpl);
-			gotoxy(l_padding("Thanks For Your Time"), 10);
-			printf("Thanks For Your Time");
+
+			print("Thanks For Your Time", "", 11, ocpl, false);
+
 			countdown(l_padding("0"), wherey()+1,3);
 
 			
@@ -173,8 +171,24 @@ void countdown(int x, int y, int sec) {
 	}
 }
 
-void sign_up(void) {
+void sign_up(bool* ocpl) {
+	char username[20], password[20];
+	print("choose a username:", "", 10, ocpl,false);
+	gotoxy(2,11)
+	scanf("%s", username);
+
+	print("choose a password:","",12,ocpl,false);
+	int p = 0;
+	do {
+		password[p] = getch();
+		if (password[p] != '\r') {
+			printf("*");
+		}
+		p++;
+	} while (password[p - 1] != '\r');
+	password[p - 1] = '\0';
 	
+
 }
 
 /*
