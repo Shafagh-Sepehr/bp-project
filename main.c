@@ -40,31 +40,38 @@ typedef struct user {
 void my_callback_on_key_arrival(char c);
 void print_frame(int _i, int _j);
 void welcome(bool* ocpl);
-int l_padding(char str[I]);
+int l_padding(char str[I], int j);
 void ocpl_clean(bool* ocpl);
-void menu(bool* ocpl,FILE* usr_inf);
-void sign_up(bool *ocpl);
-void log_in(void);
+void menu(bool* ocpl, FILE* usr_inf);
+void sign_up(bool* ocpl, FILE* usr_inf);
+void log_in(bool* ocpl, FILE* usr_inf);
 void countdown(int x, int y, int sec);
-void print(char* str, char* padding, int y, bool* ocpl, bool a,int j);
+void print(char* str, char* padding, int y, bool* ocpl, bool a, int j);
+void get_pass(char* password);
+void get_user(char* username);
+bool is_user_unique(FILE* usr_inf, char* username);
+bool does_username_exist(FILE* usr_inf,char* username);
+
 
 int main()
 {
 	bool ocpl[35];//occupied_lines
 
 	//file section
-	FILE *usr_inf = fopen("user_info.bin","rb+");
+	FILE* usr_inf = NULL;
+	usr_inf = fopen("user_info.bin", "ab+");
+
+	if (usr_inf == NULL || fseek(usr_inf, 0, SEEK_SET) != 0) {
+		fprintf(stderr, "user_info file didn't open properly.");
+		return -1;
+	}
 	//
 
-	print_frame(I,J);
+	print_frame(I, J);
 	welcome(ocpl);
 	getch();//wait for any key to be pressed
 	ocpl_clean(ocpl);//clean welcome screen
-	menu(ocpl,usr_inf);
-
-
-
-
+	menu(ocpl, usr_inf);
 
 
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
@@ -76,7 +83,7 @@ void my_callback_on_key_arrival(char c) {
 
 }
 
-int l_padding(char str[I],int j) {//middle text
+int l_padding(char str[I], int j) {//middle text
 	return (j - strlen(str)) / 2;
 }
 
@@ -91,7 +98,7 @@ void ocpl_clean(bool* ocpl) {//line cleaner
 	}
 }
 
-void print_frame(int _i,int _j) {
+void print_frame(int _i, int _j) {
 	for (int i = 0; i < _i; i++) {
 		for (int j = 0; j < _j; j++) {
 			printf((i == 0 || j == 0 || i + 1 == _i || j + 1 == _j) ? "*" : " ");
@@ -101,43 +108,99 @@ void print_frame(int _i,int _j) {
 }
 
 void welcome(bool* ocpl) {
-	
-	print("WELCOME", "", 6, ocpl, false ,J);
 
-	
+	print("WELCOME", "", 6, ocpl, false, J);
+
+
 	print("TYPING GAME", "", 8, ocpl, false, J);
 
-	
+
 	print("press any key...", "", 11, ocpl, false, J);
 
-	
+
 	print("by shafagh sepehr", "", 23, ocpl, false, J);
 
 
 	gotoxy(0, 30);//reset line to the end
 }
-void print(char* str, char* padding, int y, bool* ocpl,bool a,int j) {// a determines if padding must be used
-	if(a)
-		gotoxy(l_padding(padding,j), y);
+void print(char* str, char* padding, int y, bool* ocpl, bool a, int j) {// a determines if padding must be used
+	if (a)
+		gotoxy(l_padding(padding, j), y);
 	else
-		gotoxy(l_padding(str,j), y);
+		gotoxy(l_padding(str, j), y);
 
-	printf("%s",str);
+	printf("%s", str);
 	ocpl[y] = false;
 }
 
-void menu(bool* ocpl,FILE* usr_inf) {
-	
+void get_pass(char* password) {
+	int p = 0;
+	do {
+		password[p] = getch();
+		if (password[p] == '\b') {
+			if (p == 0) {
+
+			}
+			else {
+
+				gotoxy(wherex() - 2, 6);
+				printf(" ");
+				gotoxy(wherex() - 2, 6);
+				p--;
+			}
+		}
+		else if (p >= 19) {
+
+		}
+		else if (password[p] != '\r') {
+			printf("*");
+			p++;
+		}
+
+	} while (p == 0 || password[p] != '\r');
+	password[p] = '\0';
+}
+
+void get_user(char* username) {
+	int p = 0;
+	do {
+		username[p] = getch();
+		if (username[p] == '\b') {
+			if (p == 0) {
+
+			}
+			else {
+
+				gotoxy(wherex() - 2, 4);
+				printf(" ");
+				gotoxy(wherex() - 2, 4);
+				p--;
+			}
+		}
+		else if (p >= 19) {
+
+		}
+		else if (username[p] != '\r') {
+			printf("%c", username[p]);
+			p++;
+		}
+
+	} while (p == 0 || username[p] != '\r');
+	username[p] = '\0';
+}
+
+void menu(bool* ocpl, FILE* usr_inf) {
+
 	system("cls");
-	print_frame(11,J);
+	print_frame(11, J);
 
 
 	print("1-Sign Up", "", 4, ocpl, false, J);
 
-	
+
 	print("2-Log In", "1-Sign In", 5, ocpl, true, J);
 
-	
+
 	print("3-Exit", "1-Sign In", 6, ocpl, true, J);
 
 	while (1) {
@@ -146,7 +209,7 @@ void menu(bool* ocpl,FILE* usr_inf) {
 		switch (ch) {
 		case 1:
 			system("cls");//clears screen completly
-			sign_up(ocpl);
+			sign_up(ocpl, usr_inf);
 			break;
 
 		case 2:
@@ -157,11 +220,11 @@ void menu(bool* ocpl,FILE* usr_inf) {
 		case 3://exit
 			ocpl_clean(ocpl);
 
-			print("Thanks For Your Time", "", 11, ocpl, false, J);
+			print("Thanks For Your Time", "", 4, ocpl, false, J);
 
-			countdown(l_padding("0",J), wherey()+1,3);
+			countdown(l_padding("0", J), wherey() + 1, 3);
 
-			
+
 			system("cls");
 			exit(0);
 			break;
@@ -180,90 +243,98 @@ void countdown(int x, int y, int sec) {
 	}
 }
 
-void sign_up(bool* ocpl) {
-
-	print_frame(9, 48);
-
-
-	char username[20], password[20];
-	print("max length = 19 characters", "", 6, ocpl, false, 49);
-	print("choose a username: ", "", 2, ocpl,false,J);
-
-	int p = 0;
-	do {
-		username[p] = getch();
-		if (username[p] == '\b') {
-			if (p == 0) {
-
-			}
-			else {
-
-				gotoxy(wherex() - 2, 2);
-				printf(" ");
-				gotoxy(wherex() - 2, 2);
-				p--;
-			}
+bool is_user_unique(FILE* usr_inf, char* username) {
+	user temp;
+	while (fgetc(usr_inf) != EOF) {
+		fseek(usr_inf, -1, SEEK_CUR);
+		fread(&temp, sizeof(user), 1, usr_inf);
+		if (strcmp(temp.username, username) == 1) {
+			return false;
 		}
-		else if (p >= 19) {
+	}
+	return true;
+}
 
+bool does_username_exist(FILE* usr_inf, char* username) {
+	user temp;
+	while (fgetc(usr_inf) != EOF) {
+		fseek(usr_inf, -1, SEEK_CUR);
+		fread(&temp, sizeof(user), 1, usr_inf);
+		if (strcmp(temp.username, username) == 1) {
+			return true;
 		}
-		else if (username[p] != '\r') {
-			printf("%c", username[p]);
-			p++;
-		}
-
-	} while (p == 0 || username[p] != '\r');
-	username[p] = '\0';
-
-	print("choose a password: ","",4,ocpl,false,J);
-
-	
-	p = 0;
-	do {
-		password[p] = getch();
-		if (password[p] == '\b') {
-			if (p == 0) {
-				
-			}
-			else { 
-				
-				gotoxy(wherex() - 2, 4);
-				printf(" ");
-				gotoxy(wherex() - 2, 4);
-				p--;
-			}
-		}
-		else if (p >= 19) {
-
-		}
-		else if (password[p] != '\r') {
-			printf("*");
-			p++;
-		}
-		
-	} while (p==0  ||password[p ] != '\r');
-	password[p] = '\0';
-	
+	}
+	return false;
 
 }
 
-/*
-char password[55];
+void sign_up(bool* ocpl, FILE* usr_inf) {
 
-	printf("password:\n");
-	int p = 0;
-	do {
-		password[p] = getch();
-		if (password[p] != '\r') {
-			printf("");
+	print_frame(11, 48);
+	user temp;
+
+	char username[20], password[20];
+	while (1) {
+		print("SIGN UP", "", 2, ocpl, false, 48);
+		print("max length = 19 characters", "", 8, ocpl, false, 49);
+
+
+
+		print("choose a username: ", "", 4, ocpl, false, J);
+		get_user(username);
+
+		print("                          ", "choose a password: ", 6, ocpl, true, J);//clears username is taken massage if it's there
+		print("choose a password: ", "", 6, ocpl, false, J);
+		get_pass(password);
+
+		if (is_user_unique(usr_inf, username))
+			break;
+		else {
+			system("cls");
+			print_frame(11, 48);
+			print("username is already taken", "", 6, ocpl, false, J);
 		}
-		p++;
-	} while (password[p - 1] != '\r');
-	password[p - 1] = '\0';
-	printf("press any key to see your password\n");
-	getch();
-	printf("\nYou have entered %s as password.", password);
-*/
+	}
+	strcpy(temp.password, password);
+	strcpy(temp.username, username);
+	fseek(usr_inf, 0, SEEK_END);
+	fwrite(&temp, sizeof(user), 1, usr_inf);
+	//....................................................................................................
+}
+
+void log_in(bool* ocpl, FILE* usr_inf) {
+
+	print_frame(11, 40);
+	user temp;
+
+	char username[20], password[20];
+	while (1) {
+		print("LOG IN", "", 2, ocpl, false, 40);
+		print("max length = 19 characters", "", 8, ocpl, false, 41);
+
+
+
+		print("username: ", "", 4, ocpl, false, J);
+		get_user(username);
+		print("                      ", "password: ", 6, ocpl, true, J);//clears username is invalid massage if it's there
+		if (does_username_exist(usr_inf, username))
+			break;
+		else {
+			system("cls");
+			print_frame(11, 48);
+			print("invalid username", "", 6, ocpl, false, J);
+			continue;
+		}
+
+		
+		print("password: ", "", 6, ocpl, false, J);
+		get_pass(password);
+
+		
+	}
+
+
+}
 
 /*
 this is for time and date
