@@ -42,7 +42,7 @@ void print_frame(int _i, int _j);
 void welcome(bool* ocpl);
 int l_padding(char str[I], int j);
 void ocpl_clean(bool* ocpl);
-void menu(bool* ocpl, FILE* usr_inf);
+void account_menu(bool* ocpl, FILE* usr_inf);
 void sign_up(bool* ocpl, FILE* usr_inf);
 void log_in(bool* ocpl, FILE* usr_inf);
 void countdown(int x, int y, int sec);
@@ -50,7 +50,8 @@ void print(char* str, char* padding, int y, bool* ocpl, bool a, int j);
 void get_pass(char* password);
 void get_user(char* username);
 bool is_user_unique(FILE* usr_inf, char* username);
-bool does_username_exist(FILE* usr_inf,char* username);
+bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, char* realpass);
+void main_menu(bool* ocpl, user* user_strcut);
 
 
 int main()
@@ -71,7 +72,7 @@ int main()
 	welcome(ocpl);
 	getch();//wait for any key to be pressed
 	ocpl_clean(ocpl);//clean welcome screen
-	menu(ocpl, usr_inf);
+	account_menu(ocpl, usr_inf);
 
 
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
@@ -99,6 +100,7 @@ void ocpl_clean(bool* ocpl) {//line cleaner
 }
 
 void print_frame(int _i, int _j) {
+	gotoxy(0, 0);
 	for (int i = 0; i < _i; i++) {
 		for (int j = 0; j < _j; j++) {
 			printf((i == 0 || j == 0 || i + 1 == _i || j + 1 == _j) ? "*" : " ");
@@ -189,7 +191,7 @@ void get_user(char* username) {
 	username[p] = '\0';
 }
 
-void menu(bool* ocpl, FILE* usr_inf) {
+void account_menu(bool* ocpl, FILE* usr_inf) {
 
 	system("cls");
 	print_frame(11, J);
@@ -214,7 +216,7 @@ void menu(bool* ocpl, FILE* usr_inf) {
 
 		case 2:
 			ocpl_clean(ocpl);
-
+			log_in(ocpl, usr_inf);
 			break;
 
 		case 3://exit
@@ -255,12 +257,13 @@ bool is_user_unique(FILE* usr_inf, char* username) {
 	return true;
 }
 
-bool does_username_exist(FILE* usr_inf, char* username) {
+bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, user* user_struct) {
 	user temp;
 	while (fgetc(usr_inf) != EOF) {
 		fseek(usr_inf, -1, SEEK_CUR);
 		fread(&temp, sizeof(user), 1, usr_inf);
 		if (strcmp(temp.username, username) == 1) {
+			*user_struct = temp;
 			return true;
 		}
 	}
@@ -300,38 +303,72 @@ void sign_up(bool* ocpl, FILE* usr_inf) {
 	fseek(usr_inf, 0, SEEK_END);
 	fwrite(&temp, sizeof(user), 1, usr_inf);
 	//....................................................................................................
+	log_in(ocpl,usr_inf);
 }
 
 void log_in(bool* ocpl, FILE* usr_inf) {
-
+	bool is_credentials_right=true;
 	print_frame(11, 40);
-	user temp;
+	user user_struct;
 
-	char username[20], password[20];
+	char username[20], password[20],realpass[20];
 	while (1) {
 		print("LOG IN", "", 2, ocpl, false, 40);
 		print("max length = 19 characters", "", 8, ocpl, false, 41);
-
+		
 
 
 		print("username: ", "", 4, ocpl, false, J);
 		get_user(username);
-		print("                      ", "password: ", 6, ocpl, true, J);//clears username is invalid massage if it's there
-		if (does_username_exist(usr_inf, username))
-			break;
-		else {
-			system("cls");
-			print_frame(11, 48);
-			print("invalid username", "", 6, ocpl, false, J);
-			continue;
-		}
-
 		
+		if (!does_username_exist_and_get_user_struct(usr_inf, username,&user_struct))
+			is_credentials_right = false;
+			
+			
 		print("password: ", "", 6, ocpl, false, J);
 		get_pass(password);
-
+		if (strcmp(password, user_struct.password) != 0) {
+			is_credentials_right = false;
+		}
 		
+		if (is_credentials_right) {
+			break;
+		}
+		else {
+			print_frame(11, 40);
+			print("wrong credentials", "", 6, ocpl, false, 40);
+			print("1-try again 2-return back", "", 8, ocpl, false, 40);
+
+			while (1) {
+				int ch = getch();
+				ch -= '0';
+				switch (ch) {
+				case 1:
+					system("cls");//clears screen completly
+					log_in(ocpl, usr_inf);
+					break;
+
+				case 2:
+					account_menu(ocpl,usr_inf);
+					break;
+
+				default:
+
+					break;
+				}
+			}
+
+		}
 	}
+	system("cls");
+	main_menu(ocpl,&user_struct);
+}
+void main_menu(bool* ocpl, user* user_struct) {
+	print_frame(15, J);
+	print("1-new game", "", 6, ocpl, false, J);
+	print("2-load game", "", 6, ocpl, false, J);
+	print("3-change password", "", 6, ocpl, false, J);
+
 
 
 }
