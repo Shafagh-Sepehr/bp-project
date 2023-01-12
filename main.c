@@ -30,9 +30,9 @@ typedef struct gameinfo {
 typedef struct user {
 	char username[20];
 	char password[20];
-	gameinfo first_game;
-	gameinfo second_game;
-	gameinfo third_game;//oldes game
+	//gameinfo first_game;
+	//gameinfo second_game;
+	//gameinfo third_game;//oldest game
 }user;
 
 
@@ -42,38 +42,42 @@ void print_frame(int _i, int _j);
 void welcome(bool* ocpl);
 int l_padding(char str[I], int j);
 void ocpl_clean(bool* ocpl);
-void account_menu(bool* ocpl, FILE* usr_inf);
+void account_menu(bool* ocpl, FILE* usr_inf, user* user_struct);
 void sign_up(bool* ocpl, FILE* usr_inf);
-void log_in(bool* ocpl, FILE* usr_inf);
+bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct);
 void countdown(int x, int y, int sec);
 void print(char* str, char* padding, int y, bool* ocpl, bool a, int j);
 void get_pass(char* password);
 void get_user(char* username);
 bool is_user_unique(FILE* usr_inf, char* username);
-bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, char* realpass);
-void main_menu(bool* ocpl, user* user_strcut);
-
+bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, user* user_struct);
+int main_menu(bool* ocpl, FILE* usr_inf, user* user_strcut);
+void change_password(bool* ocpl,  FILE* usr_inf ,user* user_struct);
 
 int main()
 {
+	user user_struct;
 	bool ocpl[35];//occupied_lines
 
 	//file section
 	FILE* usr_inf = NULL;
-	usr_inf = fopen("user_info.bin", "ab+");
+	usr_inf = fopen("user_info.bin", "rb+");
 
 	if (usr_inf == NULL || fseek(usr_inf, 0, SEEK_SET) != 0) {
 		fprintf(stderr, "user_info file didn't open properly.");
 		return -1;
 	}
-	//
+	//////
 
 	print_frame(I, J);
 	welcome(ocpl);
 	getch();//wait for any key to be pressed
-	ocpl_clean(ocpl);//clean welcome screen
-	account_menu(ocpl, usr_inf);
 
+	do{
+	account_menu(ocpl, usr_inf, &user_struct);
+	} while (main_menu(ocpl, usr_inf, &user_struct) == 1);
+
+	
 
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	WaitForSingleObject(thread_id, INFINITE);
@@ -145,9 +149,9 @@ void get_pass(char* password) {
 			}
 			else {
 
-				gotoxy(wherex() - 2, 6);
+				gotoxy(wherex() - 2, wherey()-1);
 				printf(" ");
-				gotoxy(wherex() - 2, 6);
+				gotoxy(wherex() - 2, wherey()-1);
 				p--;
 			}
 		}
@@ -173,9 +177,9 @@ void get_user(char* username) {
 			}
 			else {
 
-				gotoxy(wherex() - 2, 4);
+				gotoxy(wherex() - 2, wherey()-1);
 				printf(" ");
-				gotoxy(wherex() - 2, 4);
+				gotoxy(wherex() - 2, wherey()-1);
 				p--;
 			}
 		}
@@ -191,21 +195,25 @@ void get_user(char* username) {
 	username[p] = '\0';
 }
 
-void account_menu(bool* ocpl, FILE* usr_inf) {
-
-	system("cls");
-	print_frame(11, J);
+void account_menu(bool* ocpl, FILE* usr_inf, user* user_struct) {
 
 
-	print("1-Sign Up", "", 4, ocpl, false, J);
-
-
-	print("2-Log In", "1-Sign In", 5, ocpl, true, J);
-
-
-	print("3-Exit", "1-Sign In", 6, ocpl, true, J);
 
 	while (1) {
+
+		system("cls");
+		print_frame(11, J);
+
+
+		print("1-Sign Up", "", 4, ocpl, false, J);
+
+
+		print("2-Log In", "1-Sign In", 5, ocpl, true, J);
+
+
+		print("3-Exit", "1-Sign In", 6, ocpl, true, J);
+
+
 		int ch = getch();
 		ch -= '0';
 		switch (ch) {
@@ -216,7 +224,8 @@ void account_menu(bool* ocpl, FILE* usr_inf) {
 
 		case 2:
 			ocpl_clean(ocpl);
-			log_in(ocpl, usr_inf);
+			if (log_in(ocpl, usr_inf, user_struct))
+				return;
 			break;
 
 		case 3://exit
@@ -228,6 +237,7 @@ void account_menu(bool* ocpl, FILE* usr_inf) {
 
 
 			system("cls");
+			fclose(usr_inf);
 			exit(0);
 			break;
 		default:
@@ -246,27 +256,32 @@ void countdown(int x, int y, int sec) {
 }
 
 bool is_user_unique(FILE* usr_inf, char* username) {
+	fseek(usr_inf, 0, SEEK_SET);
 	user temp;
 	while (fgetc(usr_inf) != EOF) {
 		fseek(usr_inf, -1, SEEK_CUR);
 		fread(&temp, sizeof(user), 1, usr_inf);
-		if (strcmp(temp.username, username) == 1) {
+		if (strcmp(temp.username, username) == 0) {
 			return false;
 		}
 	}
+	fseek(usr_inf, 0, SEEK_SET);
 	return true;
 }
 
 bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, user* user_struct) {
+	fseek(usr_inf, 0, SEEK_SET);
 	user temp;
 	while (fgetc(usr_inf) != EOF) {
 		fseek(usr_inf, -1, SEEK_CUR);
 		fread(&temp, sizeof(user), 1, usr_inf);
-		if (strcmp(temp.username, username) == 1) {
-			*user_struct = temp;
+		if (strcmp(temp.username, username) == 0) {
+			(*user_struct) = temp;
+			fseek(usr_inf, -1 * sizeof(user), SEEK_CUR);
 			return true;
 		}
 	}
+	
 	return false;
 
 }
@@ -275,19 +290,22 @@ void sign_up(bool* ocpl, FILE* usr_inf) {
 
 	print_frame(11, 48);
 	user temp;
+	char ch;
+	bool Break;
 
 	char username[20], password[20];
 	while (1) {
+		Break = false;
 		print("SIGN UP", "", 2, ocpl, false, 48);
 		print("max length = 19 characters", "", 8, ocpl, false, 49);
 
 
-
-		print("choose a username: ", "", 4, ocpl, false, J);
+		print("                                 ", "", 6, ocpl, false, 48);//clears username is taken massage if it's there
+		print("Choose A Psername: ", "", 4, ocpl, false, J);
 		get_user(username);
 
-		print("                          ", "choose a password: ", 6, ocpl, true, J);//clears username is taken massage if it's there
-		print("choose a password: ", "", 6, ocpl, false, J);
+		print("                                 ", "choose a password: ", 6, ocpl, true, 48);//clears username is taken massage if it's there
+		print("Choose A Password: ", "", 6, ocpl, false, J);
 		get_pass(password);
 
 		if (is_user_unique(usr_inf, username))
@@ -295,82 +313,222 @@ void sign_up(bool* ocpl, FILE* usr_inf) {
 		else {
 			system("cls");
 			print_frame(11, 48);
-			print("username is already taken", "", 6, ocpl, false, J);
-		}
-	}
-	strcpy(temp.password, password);
-	strcpy(temp.username, username);
-	fseek(usr_inf, 0, SEEK_END);
-	fwrite(&temp, sizeof(user), 1, usr_inf);
-	//....................................................................................................
-	log_in(ocpl,usr_inf);
-}
+			print("Username Is Already Taken", "", 6, ocpl, false, 48);
 
-void log_in(bool* ocpl, FILE* usr_inf) {
-	bool is_credentials_right=true;
-	print_frame(11, 40);
-	user user_struct;
-
-	char username[20], password[20],realpass[20];
-	while (1) {
-		print("LOG IN", "", 2, ocpl, false, 40);
-		print("max length = 19 characters", "", 8, ocpl, false, 41);
-		
-
-
-		print("username: ", "", 4, ocpl, false, J);
-		get_user(username);
-		
-		if (!does_username_exist_and_get_user_struct(usr_inf, username,&user_struct))
-			is_credentials_right = false;
-			
-			
-		print("password: ", "", 6, ocpl, false, J);
-		get_pass(password);
-		if (strcmp(password, user_struct.password) != 0) {
-			is_credentials_right = false;
-		}
-		
-		if (is_credentials_right) {
-			break;
-		}
-		else {
-			print_frame(11, 40);
-			print("wrong credentials", "", 6, ocpl, false, 40);
-			print("1-try again 2-return back", "", 8, ocpl, false, 40);
+			print("  1-Try Again 2-Return Back  ", "", 8, ocpl, false, 48);
 
 			while (1) {
-				int ch = getch();
+				ch = getch();
 				ch -= '0';
 				switch (ch) {
 				case 1:
-					system("cls");//clears screen completly
-					log_in(ocpl, usr_inf);
+					//outer loop continues
+					Break = true;
 					break;
 
 				case 2:
-					account_menu(ocpl,usr_inf);
+					return;//to the account_menu
 					break;
 
 				default:
 
 					break;
 				}
+				if (Break)
+					break;
 			}
 
 		}
 	}
-	system("cls");
-	main_menu(ocpl,&user_struct);
+
+	strcpy(temp.password, password);
+	strcpy(temp.username, username);
+	fseek(usr_inf, 0, SEEK_END);
+	fwrite(&temp, sizeof(user), 1, usr_inf);
+	fseek(usr_inf, 0, SEEK_SET);
+
+	//....................................................................................................
+	return;
 }
-void main_menu(bool* ocpl, user* user_struct) {
-	print_frame(15, J);
-	print("1-new game", "", 6, ocpl, false, J);
-	print("2-load game", "", 6, ocpl, false, J);
-	print("3-change password", "", 6, ocpl, false, J);
+
+bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct) {
+
+	bool is_credentials_right, Break;
 
 
 
+	char username[20], password[20], realpass[20], ch;
+	while (1) {
+		is_credentials_right = true;
+		Break = false;
+		system("cls");//clears screen completly
+
+		print_frame(11, 40);
+
+		print("LOG IN", "", 2, ocpl, false, 40);
+		print("max length = 19 characters", "", 8, ocpl, false, 41);
+
+
+
+		print("Username: ", "", 4, ocpl, false, J);
+		get_user(username);
+
+		if (!does_username_exist_and_get_user_struct(usr_inf, username, user_struct))
+			is_credentials_right = false;
+
+
+		print("Password: ", "", 6, ocpl, false, J);
+		get_pass(password);
+		if (strcmp(password, user_struct->password) != 0) {
+			is_credentials_right = false;
+		}
+
+		if (is_credentials_right) {
+			break;
+		}
+		else {
+			print_frame(11, 40);
+			print("Wrong Credentials", "", 6, ocpl, false, 40);
+			print("1-Try Again 2-Return Back", "", 8, ocpl, false, 40);
+
+			while (1) {
+				ch = getch();
+				ch -= '0';
+				switch (ch) {
+				case 1:
+					//outer loop continues
+					Break = true;
+					break;
+
+				case 2:
+					return false;//to the account_menu
+					break;
+
+				default:
+
+					break;
+				}
+				if (Break)
+					break;
+			}
+
+		}
+	}
+
+
+}
+
+void change_password(bool* ocpl,  FILE* usr_inf, user* user_struct) {
+	bool Break;
+	
+
+	char newPassword[20], curPassword[20];
+
+	while (1) {
+		Break = false;
+
+		system("cls");
+		print_frame(11, 50);
+
+		print("CHANGE PASSWORD", "", 2, ocpl, false, 50);
+		print("max length = 19 characters", "", 8, ocpl, false, 51);
+
+
+		print("Enter Current Password: ", "", 4, ocpl, false, J + 2);
+		get_pass(curPassword);
+
+		if (strcmp(curPassword, user_struct->password) != 0) {
+			system("cls");
+			print_frame(7, 50);
+
+
+			print("Password Is Incorrect", "", 2, ocpl, false, 50);
+			print("1-Try Again 2-Return Back", "", 4, ocpl, false, 50);
+
+
+			char num;
+			while (1) {
+				num = getch();
+				num -= '0';
+				switch (num) {
+				case 1:
+					Break = true;
+					break;
+				case 2:
+					return;
+					break;
+				default:
+					break;
+				}
+				if (Break)
+					break;
+			}
+		}
+		else {
+			break;
+		}
+	}
+	print("Enter   New   Password: ", "", 6, ocpl, false, J + 2);
+	get_user(newPassword);
+
+	strcpy(user_struct->password, newPassword);
+	
+
+	fwrite(user_struct, sizeof(user),1,usr_inf);
+	fseek(usr_inf, -1*sizeof(user), SEEK_CUR);
+
+	return;
+
+}
+
+int main_menu(bool* ocpl,FILE* usr_inf, user* user_struct) {
+	char ch;
+
+	while (1) {
+
+		system("cls");
+		print_frame(15, J);
+		print("1-New Game", "3-Change Password", 5, ocpl, true, J);
+		print("2-Load Game", "3-Change Password", 6, ocpl, true, J);
+		print("3-Change Password", "", 7, ocpl, false, J);
+		print("4-Log Out", "3-Change Password", 8, ocpl, true, J);
+		print("5-Exit", "3-Change Password", 9, ocpl, true, J);
+
+
+		ch = getch();
+		ch -= '0';
+		switch (ch) {
+		case 1:
+
+			break;
+
+		case 2:
+
+			break;
+
+		case 3:
+			change_password(ocpl,usr_inf, user_struct);
+			break;
+		case 4:
+			return 1;
+			break;
+		case 5:
+			ocpl_clean(ocpl);
+
+			print("Thanks For Your Time", "", 4, ocpl, false, J);
+
+			countdown(l_padding("0", J), wherey() + 1, 3);
+
+
+			system("cls");
+			fclose(usr_inf);
+			exit(0);
+			break;
+		default:
+
+			break;
+		}
+	}
 }
 
 /*
