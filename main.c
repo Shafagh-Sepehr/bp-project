@@ -8,6 +8,7 @@
 #include "helper_windows.h"
 #include "colorize.h"
 #include "conio_wherexy.h"
+#include <time.h>
 
 #define I 25//line number
 #define J 26//column number
@@ -20,13 +21,15 @@ setcolor(1);
 gotoxy(0, 5);
 system("cls");
 */
+
 typedef struct gameinfo {
-	int xp, level;
+	int xp, level_difficulty,score;
 	//time:
 	int year, month, day, hour, minute, second;
 
 	bool is_active;
 }gameinfo;
+
 typedef struct user {
 	char username[20];
 	char password[20];
@@ -39,6 +42,7 @@ typedef struct user {
 
 void my_callback_on_key_arrival(char c);
 void print_frame(int _i, int _j);
+void print_frame2(int _i, int _j);
 void welcome(bool* ocpl);
 int l_padding(char str[I], int j);
 void ocpl_clean(bool* ocpl);
@@ -56,11 +60,26 @@ void change_password(bool* ocpl,  FILE* usr_inf ,user* user_struct);
 
 int main()
 {
+	srand(time(NULL));
+
+	
+	printf("\033[;47m");
+	setcolor(0);//0-black 1-bit.Dark.Blue 2-dark.green 3-dark.cyan 4-red 5-dark.purple 6-orange 7-white 8-grey 9-blue 10-green 11-cyan 12-light.red 
+				//13-purple 14-very.light.orange 
+	//printf("hello    world");
+	system("cls");
+
+	
+	//return 0;
 	user user_struct;
 	bool ocpl[35];//occupied_lines
 
 	//file section
 	FILE* usr_inf = NULL;
+	FILE* words[15] = {NULL}; // 0 normal-easy 1 normal-medium 2 normal-hard // 3 long-easy 4 long-medium 5 long-hard 
+							// 6 difficult-easy 7 difficult-medium 8 difficult-hard // 9 left-medium 10 right-medium
+	//words[] = fopen("words__.bin", "w+");
+
 	usr_inf = fopen("user_info.bin", "rb+");
 
 	if (usr_inf == NULL || fseek(usr_inf, 0, SEEK_SET) != 0) {
@@ -103,11 +122,45 @@ void ocpl_clean(bool* ocpl) {//line cleaner
 	}
 }
 
+void print_frame2(int _i, int _j) {
+	gotoxy(0, 0);
+	for (int i = 0; i < _i; i++) {
+		for (int j = 0; j < _j; j++) {
+			//printf((i == 0 || j == 0 || i + 1 == _i || j + 1 == _j) ? "*" : " ");
+			if ((i == 0 && j==0)||(i==0 && j+1==_j))
+				printf("%c",220);
+			else if ( j == 0 ||   j + 1 == _j)
+				printf("%c",219);
+			else if(i == 0|| i + 1 == _i)
+				printf("%c", 220);
+			
+			else
+				printf(" ");
+		}
+		printf("\n");
+	}
+}
+
 void print_frame(int _i, int _j) {
 	gotoxy(0, 0);
 	for (int i = 0; i < _i; i++) {
 		for (int j = 0; j < _j; j++) {
-			printf((i == 0 || j == 0 || i + 1 == _i || j + 1 == _j) ? "*" : " ");
+			
+			if (i == 0 && j == 0)
+				printf("%c", 201);
+			else if (i == 0 && j + 1 == _j)
+				printf("%c", 187);
+			else if (j == 0 && i+1==_i)
+				printf("%c", 200);
+			else if (j+1 == _j && i + 1 == _i)
+				printf("%c", 188);
+			else if (j == 0 || j + 1 == _j)
+				printf("%c", 186);
+			else if (i == 0 || i + 1 == _i)
+				printf("%c", 205);
+
+			else
+				printf(" ");
 		}
 		printf("\n");
 	}
