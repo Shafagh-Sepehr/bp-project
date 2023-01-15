@@ -44,7 +44,7 @@ void my_callback_on_key_arrival(char c);
 void print_frame(int _i, int _j);
 void print_frame2(int _i, int _j);
 void welcome(bool* ocpl);
-int l_padding(char str[I], int j);
+int	 l_padding(char str[I], int j);
 void ocpl_clean(bool* ocpl);
 void account_menu(bool* ocpl, FILE* usr_inf, user* user_struct);
 void sign_up(bool* ocpl, FILE* usr_inf);
@@ -55,13 +55,15 @@ void get_pass(char* password);
 void get_user(char* username);
 bool is_user_unique(FILE* usr_inf, char* username);
 bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, user* user_struct);
-int main_menu(bool* ocpl, FILE* usr_inf, user* user_strcut);
+int  main_menu(bool* ocpl, FILE* usr_inf, user* user_strcut);
 void change_password(bool* ocpl,  FILE* usr_inf ,user* user_struct);
+void hide_cursor();
+void show_cursor();
 
 int main()
 {
 	srand(time(NULL));
-
+	hide_cursor();
 	
 	printf("\033[;47m");
 	setcolor(0);//0-black 1-bit.Dark.Blue 2-dark.green 3-dark.cyan 4-red 5-dark.purple 6-orange 7-white 8-grey 9-blue 10-green 11-cyan 12-light.red 
@@ -193,6 +195,8 @@ void print(char* str, char* padding, int y, bool* ocpl, bool a, int j) {// a det
 }
 
 void get_pass(char* password) {
+	show_cursor();
+
 	int p = 0;
 	do {
 		password[p] = getch();
@@ -218,9 +222,12 @@ void get_pass(char* password) {
 
 	} while (p == 0 || password[p] != '\r');
 	password[p] = '\0';
+	hide_cursor();
 }
 
 void get_user(char* username) {
+	show_cursor();
+
 	int p = 0;
 	do {
 		username[p] = getch();
@@ -246,6 +253,8 @@ void get_user(char* username) {
 
 	} while (p == 0 || username[p] != '\r');
 	username[p] = '\0';
+
+	hide_cursor();
 }
 
 void account_menu(bool* ocpl, FILE* usr_inf, user* user_struct) {
@@ -354,7 +363,7 @@ void sign_up(bool* ocpl, FILE* usr_inf) {
 
 
 		print("                                 ", "", 6, ocpl, false, 48);//clears username is taken massage if it's there
-		print("Choose A Psername: ", "", 4, ocpl, false, J);
+		print("Choose A Username: ", "", 4, ocpl, false, J);
 		get_user(username);
 
 		print("                                 ", "choose a password: ", 6, ocpl, true, 48);//clears username is taken massage if it's there
@@ -402,6 +411,24 @@ void sign_up(bool* ocpl, FILE* usr_inf) {
 
 	//....................................................................................................
 	return;
+}
+
+void hide_cursor()
+{
+	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONSOLE_CURSOR_INFO info;
+	info.dwSize = 100;
+	info.bVisible = FALSE;
+	SetConsoleCursorInfo(consoleHandle, &info);
+}
+
+void show_cursor()
+{
+	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONSOLE_CURSOR_INFO info;
+	info.dwSize = 10;
+	info.bVisible = TRUE;
+	SetConsoleCursorInfo(consoleHandle, &info);
 }
 
 bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct) {
