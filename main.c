@@ -9,13 +9,13 @@
 #include "colorize.h"
 #include "conio_wherexy.h"
 #include <time.h>
+#pragma warning(disable:4996)//disables visual studio errors about scanf and some other functions being unsafe
+
 
 #define I 25//line number
 #define J 26//column number
 
 
-
-#pragma warning(disable:4996)
 /*Example codes.
 setcolor(1);
 gotoxy(0, 5);
@@ -23,7 +23,7 @@ system("cls");
 */
 
 typedef struct gameinfo {
-	int xp, level_difficulty, score;
+	int xp, level_difficulty, high_score;
 	//time:
 	int year, month, day, hour, minute, second;
 
@@ -55,13 +55,15 @@ void get_pass(char* password);
 void get_user(char* username);
 bool is_user_unique(FILE* usr_inf, char* username);
 bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, user* user_struct);
-int  main_menu(bool* ocpl, FILE* usr_inf, user* user_strcut);
+int  main_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
 void change_password(bool* ocpl, FILE* usr_inf, user* user_struct);
 void hide_cursor(void);
 void show_cursor(void);
 unsigned long hash(char* s, char* username);
 void fill(FILE** file);
 char* fill_norm(void);
+void newGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
+void color_print(char* str, char* padding, int y, bool* ocpl, bool a, int j,int sabz,int zard_begin,int zard_end);
 
 
 int main()
@@ -72,7 +74,7 @@ int main()
 	printf("\033[;47m");//change background color to white
 	setcolor(0);//0-black 1-bit.Dark.Blue 2-dark.green 3-dark.cyan 4-red 5-dark.purple 6-orange 7-white 8-grey 9-blue 10-green 11-cyan 12-light.red 
 	//13-purple 14-very.light.orange 
-
+	
 	system("cls");
 
 
@@ -115,7 +117,7 @@ int main()
 
 	do {
 		account_menu(ocpl, usr_inf, &user_struct);
-	} while (main_menu(ocpl, usr_inf, &user_struct) == 1);
+	} while (main_menu(ocpl, usr_inf, &user_struct,words) == 1);
 
 
 
@@ -154,6 +156,8 @@ char* fill_norm(void) {
 
 	return word;
 }
+
+
 
 char* fill_long(void) {
 	char* word;
@@ -200,7 +204,7 @@ char* fill_hard(void) {
 	int r;
 	for (int i = 0; i < word_size; i++) {
 		do {
-			r = rand()%127;
+			r = rand()%128;
 		} while (!(r >= 33 && r <= 126));
 		word[i] = r;
 
@@ -381,23 +385,23 @@ char* fill_right(void) {
 
 void fill(FILE** file) {
 
-	for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < 10000; i++) {
 		fprintf(file[0], "%s\n", fill_norm());
 	}
 
-	for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < 10000; i++) {
 		fprintf(file[1], "%s\n", fill_long());
 	}
 
-	for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < 10000; i++) {
 		fprintf(file[2], "%s\n", fill_hard());
 	}
 
-	for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < 10000; i++) {
 		fprintf(file[3], "%s\n", fill_left());
 	}
 
-	for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < 10000; i++) {
 		fprintf(file[4], "%s\n", fill_right());
 	}
 
@@ -478,6 +482,7 @@ void welcome(bool* ocpl) {
 
 	gotoxy(0, 30);//reset line to the end
 }
+
 void print(char* str, char* padding, int y, bool* ocpl, bool a, int j) {// a determines if padding must be used
 	if (a)
 		gotoxy(l_padding(padding, j), y);
@@ -485,6 +490,45 @@ void print(char* str, char* padding, int y, bool* ocpl, bool a, int j) {// a det
 		gotoxy(l_padding(str, j), y);
 
 	printf("%s", str);
+	ocpl[y] = false;
+}
+
+void color_print(char* str, char* padding, int y, bool* ocpl, bool a, int j, int green, int yellow, int black) {
+	if (a)
+		gotoxy(l_padding(padding, j), y);
+	else
+		gotoxy(l_padding(str, j), y);
+
+	
+	int len = strlen(str);
+	int k = 0;
+	if (green) {
+		setcolor(10);//green
+
+		for (int i = 0; i < green; i++,k++) {
+			printf("%c", str[k]);
+		}
+
+	}
+	
+	if (yellow) {
+		setcolor(6);//orange
+
+		for (int i = 0; i < yellow; i++, k++) {
+			printf("%c", str[k]);
+		}
+
+	}
+	
+	if (black) {
+
+		setcolor(0);//black
+
+		for (int i = 0; i < black; i++, k++) {
+			printf("%c", str[k]);
+		}
+	}
+
 	ocpl[y] = false;
 }
 
@@ -743,11 +787,7 @@ unsigned long hash(char* password, char* username) {
 		i = i * *us - i;
 	}
 
-
-
 	return h;
-
-
 }
 
 bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct) {
@@ -880,7 +920,60 @@ void change_password(bool* ocpl, FILE* usr_inf, user* user_struct) {
 
 }
 
-int main_menu(bool* ocpl, FILE* usr_inf, user* user_struct) {
+void newGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
+
+	char ch;
+
+	while (1) {
+
+		system("cls");
+
+		print_frame(15, J);
+
+		print("CHOOSE LEVEL DIFFICULTY", "", 3, ocpl, false, J);
+		print("1-Easy", "3-Change Password", 6, ocpl, true, J);
+		print("2-Medium", "3-Change Password", 7, ocpl, true, J);
+		print("3-Hard", "3-Change Password", 8, ocpl, true, J);
+		print("4-Left Hand Only", "3-Change Password", 9, ocpl, true, J);
+		print("5-Right Hand Only", "3-Change Password", 10, ocpl, true, J);
+		print("6-Back To Main Menu", "3-Change Password", 11, ocpl, true, J);
+
+
+
+		ch = getch();
+		ch -= '0';
+		switch (ch) {
+		case 1:
+
+			break;
+
+		case 2:
+
+			break;
+
+		case 3:
+			
+			break;
+		case 4:
+			
+			break;
+		case 5:
+
+			break;
+		case 6:
+			return;
+			break;
+		default:
+
+			break;
+		}
+	}
+
+}
+
+
+
+int main_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 	char ch;
 
 	while (1) {
@@ -898,7 +991,7 @@ int main_menu(bool* ocpl, FILE* usr_inf, user* user_struct) {
 		ch -= '0';
 		switch (ch) {
 		case 1:
-
+			newGame_menu(ocpl, usr_inf, user_struct, words);
 			break;
 
 		case 2:
