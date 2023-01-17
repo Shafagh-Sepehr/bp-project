@@ -32,7 +32,7 @@ typedef struct gameinfo {
 
 typedef struct user {
 	char username[20];
-	char password[20];
+	unsigned long password;
 	//gameinfo first_game;
 	//gameinfo second_game;
 	//gameinfo third_game;//oldest game
@@ -59,6 +59,7 @@ int  main_menu(bool* ocpl, FILE* usr_inf, user* user_strcut);
 void change_password(bool* ocpl,  FILE* usr_inf ,user* user_struct);
 void hide_cursor();
 void show_cursor();
+unsigned long hash(char* s,char*username);
 
 int main()
 {
@@ -78,8 +79,7 @@ int main()
 
 	//file section
 	FILE* usr_inf = NULL;
-	FILE* words[15] = {NULL}; // 0 normal-easy 1 normal-medium 2 normal-hard // 3 long-easy 4 long-medium 5 long-hard 
-							// 6 difficult-easy 7 difficult-medium 8 difficult-hard // 9 left-medium 10 right-medium
+	FILE* words[5] = {NULL}; // 0 normal 1 long 2 hard 3 left 4 right
 	//words[] = fopen("words__.bin", "w+");
 
 	usr_inf = fopen("user_info.bin", "rb+");
@@ -403,7 +403,9 @@ void sign_up(bool* ocpl, FILE* usr_inf) {
 		}
 	}
 
-	strcpy(temp.password, password);
+	//strcpy(temp.password, password);
+	temp.password = hash(password, username);
+
 	strcpy(temp.username, username);
 	fseek(usr_inf, 0, SEEK_END);
 	fwrite(&temp, sizeof(user), 1, usr_inf);
@@ -429,6 +431,30 @@ void show_cursor()
 	info.dwSize = 10;
 	info.bVisible = TRUE;
 	SetConsoleCursorInfo(consoleHandle, &info);
+}
+
+unsigned long hash(char* password ,char*username){
+	char s[45];
+	strcpy(s, password);
+	strcat(s, username);
+
+	unsigned long h;
+	unsigned const char* us;
+	int MULTIPLIER = 37;
+	us = (unsigned const char*)s;
+	int i = 255;
+	h = 0;
+	while (*us != '\0') {
+		h = h * MULTIPLIER + *us * i;
+		us++;
+		i = i * *us - i;
+	}
+
+
+
+	return h;
+
+	
 }
 
 bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct) {
@@ -459,7 +485,7 @@ bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct) {
 
 		print("Password: ", "", 6, ocpl, false, J);
 		get_pass(password);
-		if (strcmp(password, user_struct->password) != 0) {
+		if (hash(password,username)!=user_struct->password) {
 			is_credentials_right = false;
 		}
 
@@ -517,7 +543,7 @@ void change_password(bool* ocpl,  FILE* usr_inf, user* user_struct) {
 		print("Enter Current Password: ", "", 4, ocpl, false, J + 2);
 		get_pass(curPassword);
 
-		if (strcmp(curPassword, user_struct->password) != 0) {
+		if (hash(curPassword, user_struct->username) != user_struct->password) {
 			system("cls");
 			print_frame(7, 50);
 
@@ -551,8 +577,8 @@ void change_password(bool* ocpl,  FILE* usr_inf, user* user_struct) {
 	print("Enter   New   Password: ", "", 6, ocpl, false, J + 2);
 	get_user(newPassword);
 
-	strcpy(user_struct->password, newPassword);
-	
+	//strcpy(user_struct->password, newPassword);
+	user_struct->password = hash(newPassword, user_struct->username);
 
 	fwrite(user_struct, sizeof(user),1,usr_inf);
 	fseek(usr_inf, -1*sizeof(user), SEEK_CUR);
