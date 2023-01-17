@@ -23,7 +23,7 @@ system("cls");
 */
 
 typedef struct gameinfo {
-	int xp, level_difficulty,score;
+	int xp, level_difficulty, score;
 	//time:
 	int year, month, day, hour, minute, second;
 
@@ -56,49 +56,68 @@ void get_user(char* username);
 bool is_user_unique(FILE* usr_inf, char* username);
 bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, user* user_struct);
 int  main_menu(bool* ocpl, FILE* usr_inf, user* user_strcut);
-void change_password(bool* ocpl,  FILE* usr_inf ,user* user_struct);
-void hide_cursor();
-void show_cursor();
-unsigned long hash(char* s,char*username);
+void change_password(bool* ocpl, FILE* usr_inf, user* user_struct);
+void hide_cursor(void);
+void show_cursor(void);
+unsigned long hash(char* s, char* username);
+void fill(FILE** file);
+char* fill_norm(void);
+
 
 int main()
 {
 	srand(time(NULL));
 	hide_cursor();
-	
-	printf("\033[;47m");
+
+	printf("\033[;47m");//change background color to white
 	setcolor(0);//0-black 1-bit.Dark.Blue 2-dark.green 3-dark.cyan 4-red 5-dark.purple 6-orange 7-white 8-grey 9-blue 10-green 11-cyan 12-light.red 
-				//13-purple 14-very.light.orange 
-	//printf("hello    world");
+	//13-purple 14-very.light.orange 
+
 	system("cls");
 
+
 	
-	//return 0;
 	user user_struct;
 	bool ocpl[35];//occupied_lines
 
 	//file section
-	FILE* usr_inf = NULL;
-	FILE* words[5] = {NULL}; // 0 normal 1 long 2 hard 3 left 4 right
-	//words[] = fopen("words__.bin", "w+");
+	
+	FILE* words[5] ; // 0 normal 1 long 2 hard 3 left 4 right
+	
+	words[0] = fopen("normal_words.txt", "w+");
+	words[1] = fopen("long_words.txt", "w+");
+	words[2] = fopen("hard_words.txt", "w+");
+	words[3] = fopen("left_words.txt", "w+");
+	words[4] = fopen("right_words.txt", "w+");
 
-	usr_inf = fopen("user_info.bin", "rb+");
+	if (words[0] == NULL || words[1] == NULL || words[2] == NULL || words[3] == NULL || words[4] == NULL) {
+		fprintf(stderr, "word files didn't open properly.");
+		return 1;
+	}
+
+	FILE* usr_inf = fopen("user_info.bin", "rb+");
 
 	if (usr_inf == NULL || fseek(usr_inf, 0, SEEK_SET) != 0) {
 		fprintf(stderr, "user_info file didn't open properly.");
-		return -1;
+		return 1;
 	}
-	//////
+	//////file section end
+
+	fill(words);
+	
+
 
 	print_frame(I, J);
-	welcome(ocpl);
+
+	welcome(ocpl);//welcome page
+
 	getch();//wait for any key to be pressed
 
-	do{
-	account_menu(ocpl, usr_inf, &user_struct);
+	do {
+		account_menu(ocpl, usr_inf, &user_struct);
 	} while (main_menu(ocpl, usr_inf, &user_struct) == 1);
 
-	
+
 
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	WaitForSingleObject(thread_id, INFINITE);
@@ -106,6 +125,281 @@ int main()
 }
 void my_callback_on_key_arrival(char c) {
 
+
+}
+
+char* fill_norm(void) {
+	char* word;
+	int max_size = 10;
+	int min_size = 4;
+	int word_size = rand() % (max_size + 1);
+	while (word_size < min_size) {
+		word_size += rand() % (max_size - min_size + 2);
+	}
+	word = (char*)malloc(sizeof(char) * word_size );
+	if (word == NULL) {
+		fprintf(stderr, "word alloc failed");
+		exit(1);
+	}
+	
+	int r;
+	for (int i = 0; i < word_size; i++) {
+		do {
+			r = rand()%127;
+		} while (!((r >= 48 && r <= 57) || (r >= 65 && r <= 90) || (r >= 97 && r <= 122)));
+		word[i] = r;
+
+	}
+	word[word_size] = '\0';
+
+	return word;
+}
+
+char* fill_long(void) {
+	char* word;
+	int max_size = 19;
+	int min_size = 11;
+	int word_size = rand() % (max_size + 1);
+	while (word_size < min_size) {
+		word_size += rand() % (max_size - min_size + 2);
+	}
+	word = (char*)malloc(sizeof(char) * word_size);
+
+	if (word == NULL) {
+		fprintf(stderr, "word alloc failed");
+		exit(1);
+	}
+
+	char r;
+	for (int i = 0; i < word_size; i++) {
+		do {
+			r = rand()%125;
+		} while (     !((r >= 48 && r <= 57) || (r >= 65 && r <= 90) || (r >= 97 && r <= 122))     );
+		word[i] = r;
+
+	}
+	word[word_size] = '\0';
+
+	return word;
+}
+
+char* fill_hard(void) {
+	char* word;
+	int max_size = 17;
+	int min_size = 6;
+	int word_size = rand() % (max_size + 1);
+	while (word_size < min_size) {
+		word_size += rand() % (max_size - min_size + 2);
+	}
+	word = (char*)malloc(sizeof(char) *word_size );
+	if (word == NULL) {
+		fprintf(stderr, "word alloc failed");
+		exit(1);
+	}
+
+	int r;
+	for (int i = 0; i < word_size; i++) {
+		do {
+			r = rand()%127;
+		} while (!(r >= 33 && r <= 126));
+		word[i] = r;
+
+	}
+	word[word_size] = '\0';
+
+	return word;
+}
+
+char* fill_left(void) {
+	char* word;
+	int max_size = 15;
+	int min_size = 6;
+	int word_size = rand() % (max_size + 1);
+	while (word_size < min_size) {
+		word_size += rand() % (max_size - min_size + 2);
+	}
+	word = (char*)malloc(sizeof(char) * word_size );
+	if (word == NULL) {
+		fprintf(stderr, "word alloc failed");
+		exit(1);
+	}
+
+	int r;
+	for (int i = 0; i < word_size; i++) {
+
+		r = rand() % 48;
+
+		switch (r)
+		{
+		case 0:		r = 'N'; break;
+		case 1:		r = '1'; break;
+		case 2:		r = '!'; break;
+		case 3:		r = 'q'; break;
+		case 4:		r = 'Q'; break;
+		case 5:		r = 'a'; break;
+		case 6:		r = 'A'; break;
+		case 7:		r = 'z'; break;
+		case 8:		r = 'Z'; break;
+		case 9:		r = 'w'; break;
+		case 10:	r = 'W'; break;
+		case 11:	r = 's'; break;
+		case 12:	r = 'S'; break;
+		case 13:	r = 'x'; break;
+		case 14:	r = 'X'; break;
+		case 15:	r = 'e'; break;
+		case 16:	r = 'E'; break;
+		case 17:	r = '2'; break;
+		case 18:	r = '@'; break;
+		case 19:	r = '3'; break;
+		case 20:	r = '#'; break;
+		case 21:	r = 'd'; break;
+		case 22:	r = 'D'; break;
+		case 23:	r = 'c'; break;
+		case 24:	r = 'C'; break;
+		case 25:	r = '4'; break;
+		case 26:	r = '$'; break;
+		case 27:	r = 'r'; break;
+		case 28:	r = 'R'; break;
+		case 29:	r = 'f'; break;
+		case 30:	r = 'F'; break;
+		case 31:	r = 'v'; break;
+		case 32:	r = 'V'; break;
+		case 33:	r = '%'; break;
+		case 34:	r = '5'; break;
+		case 35:	r = 't'; break;
+		case 36:	r = 'T'; break;
+		case 37:	r = 'g'; break;
+		case 38:	r = 'G'; break;
+		case 39:	r = 'b'; break;
+		case 40:	r = 'B'; break;
+		case 41:	r = '6'; break;
+		case 42:	r = '^'; break;
+		case 43:	r = 'y'; break;
+		case 44:	r = 'Y'; break;
+		case 45:	r = 'h'; break;
+		case 46:	r = 'H'; break;
+		case 47:	r = 'n'; break;
+		case 48:	r = '~'; break;
+
+
+		default:
+			break;
+		}
+
+		word[i] = r;
+
+	}
+	word[word_size] = '\0';
+
+	return word;
+}
+
+char* fill_right(void) {
+	char* word;
+	int max_size = 15;
+	int min_size = 6;
+	int word_size = rand() % (max_size + 1);
+	while (word_size < min_size) {
+		word_size += rand() % (max_size - min_size + 2);
+	}
+	word = (char*)malloc(sizeof(char) * word_size );
+	if (word == NULL) {
+		fprintf(stderr, "word alloc failed");
+		exit(1);
+	}
+
+	int r;
+	for (int i = 0; i < word_size; i++) {
+
+		r = rand() % 48;
+
+		switch (r)
+		{
+		case 1:		r = 'y'; break;
+		case 2:		r = 'Y'; break;
+		case 3:		r = 'h'; break;
+		case 4:		r = 'H'; break;
+		case 5:		r = 'n'; break;
+		case 6:		r = 'N'; break;
+		case 7:		r = '7'; break;
+		case 8:		r = '&'; break;
+		case 9:		r = 'u'; break;
+		case 10:	r = 'U'; break;
+		case 11:	r = 'j'; break;
+		case 12:	r = 'J'; break;
+		case 13:	r = 'm'; break;
+		case 14:	r = 'M'; break;
+		case 15:	r = '8'; break;
+		case 16:	r = '*'; break;
+		case 17:	r = 'i'; break;
+		case 18:	r = 'I'; break;
+		case 19:	r = 'k'; break;
+		case 20:	r = 'K'; break;
+		case 21:	r = ','; break;
+		case 22:	r = '<'; break;
+		case 23:	r = '9'; break;
+		case 24:	r = '('; break;
+		case 25:	r = 'o'; break;
+		case 26:	r = 'O'; break;
+		case 27:	r = 'l'; break;
+		case 28:	r = 'L'; break;
+		case 29:	r = '.'; break;
+		case 30:	r = '>'; break;
+		case 31:	r = '0'; break;
+		case 32:	r = ')'; break;
+		case 33:	r = 'p'; break;
+		case 34:	r = 'P'; break;
+		case 35:	r = ';'; break;
+		case 36:	r = ':'; break;
+		case 37:	r = '/'; break;
+		case 38:	r = '?'; break;
+		case 39:	r = '-'; break;
+		case 40:	r = '_'; break;
+		case 41:	r = '['; break;
+		case 42:	r = '{'; break;
+		case 43:	r = "'"; break;
+		case 44:	r = '"'; break;
+		case 45:	r = '+'; break;
+		case 46:	r = '='; break;
+		case 47:	r = ']'; break;
+		case 48:	r = '}'; break;
+		case 49:	r = '\\'; break;
+		case 50:	r = '|'; break;
+
+
+		default:
+			break;
+		}
+
+		word[i] = r;
+
+	}
+	word[word_size] = '\0';
+
+	return word;
+}
+
+void fill(FILE** file) {
+
+	for (int i = 0; i < 1000; i++) {
+		fprintf(file[0], "%s\n", fill_norm());
+	}
+
+	for (int i = 0; i < 1000; i++) {
+		fprintf(file[1], "%s\n", fill_long());
+	}
+
+	for (int i = 0; i < 1000; i++) {
+		fprintf(file[2], "%s\n", fill_hard());
+	}
+
+	for (int i = 0; i < 1000; i++) {
+		fprintf(file[3], "%s\n", fill_left());
+	}
+
+	for (int i = 0; i < 1000; i++) {
+		fprintf(file[4], "%s\n", fill_right());
+	}
 
 }
 
@@ -129,13 +423,13 @@ void print_frame2(int _i, int _j) {
 	for (int i = 0; i < _i; i++) {
 		for (int j = 0; j < _j; j++) {
 			//printf((i == 0 || j == 0 || i + 1 == _i || j + 1 == _j) ? "*" : " ");
-			if ((i == 0 && j==0)||(i==0 && j+1==_j))
-				printf("%c",220);
-			else if ( j == 0 ||   j + 1 == _j)
-				printf("%c",219);
-			else if(i == 0|| i + 1 == _i)
+			if ((i == 0 && j == 0) || (i == 0 && j + 1 == _j))
 				printf("%c", 220);
-			
+			else if (j == 0 || j + 1 == _j)
+				printf("%c", 219);
+			else if (i == 0 || i + 1 == _i)
+				printf("%c", 220);
+
 			else
 				printf(" ");
 		}
@@ -147,14 +441,14 @@ void print_frame(int _i, int _j) {
 	gotoxy(0, 0);
 	for (int i = 0; i < _i; i++) {
 		for (int j = 0; j < _j; j++) {
-			
+
 			if (i == 0 && j == 0)
 				printf("%c", 201);
 			else if (i == 0 && j + 1 == _j)
 				printf("%c", 187);
-			else if (j == 0 && i+1==_i)
+			else if (j == 0 && i + 1 == _i)
 				printf("%c", 200);
-			else if (j+1 == _j && i + 1 == _i)
+			else if (j + 1 == _j && i + 1 == _i)
 				printf("%c", 188);
 			else if (j == 0 || j + 1 == _j)
 				printf("%c", 186);
@@ -206,9 +500,9 @@ void get_pass(char* password) {
 			}
 			else {
 
-				gotoxy(wherex() - 2, wherey()-1);
+				gotoxy(wherex() - 2, wherey() - 1);
 				printf(" ");
-				gotoxy(wherex() - 2, wherey()-1);
+				gotoxy(wherex() - 2, wherey() - 1);
 				p--;
 			}
 		}
@@ -237,9 +531,9 @@ void get_user(char* username) {
 			}
 			else {
 
-				gotoxy(wherex() - 2, wherey()-1);
+				gotoxy(wherex() - 2, wherey() - 1);
 				printf(" ");
-				gotoxy(wherex() - 2, wherey()-1);
+				gotoxy(wherex() - 2, wherey() - 1);
 				p--;
 			}
 		}
@@ -299,7 +593,7 @@ void account_menu(bool* ocpl, FILE* usr_inf, user* user_struct) {
 
 
 			system("cls");
-			fclose(usr_inf);
+			_fcloseall();
 			exit(0);
 			break;
 		default:
@@ -343,7 +637,7 @@ bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, user
 			return true;
 		}
 	}
-	
+
 	return false;
 
 }
@@ -415,8 +709,7 @@ void sign_up(bool* ocpl, FILE* usr_inf) {
 	return;
 }
 
-void hide_cursor()
-{
+void hide_cursor(void) {
 	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 	CONSOLE_CURSOR_INFO info;
 	info.dwSize = 100;
@@ -424,7 +717,7 @@ void hide_cursor()
 	SetConsoleCursorInfo(consoleHandle, &info);
 }
 
-void show_cursor()
+void show_cursor(void)
 {
 	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 	CONSOLE_CURSOR_INFO info;
@@ -433,7 +726,7 @@ void show_cursor()
 	SetConsoleCursorInfo(consoleHandle, &info);
 }
 
-unsigned long hash(char* password ,char*username){
+unsigned long hash(char* password, char* username) {
 	char s[45];
 	strcpy(s, password);
 	strcat(s, username);
@@ -454,7 +747,7 @@ unsigned long hash(char* password ,char*username){
 
 	return h;
 
-	
+
 }
 
 bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct) {
@@ -485,7 +778,7 @@ bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct) {
 
 		print("Password: ", "", 6, ocpl, false, J);
 		get_pass(password);
-		if (hash(password,username)!=user_struct->password) {
+		if (hash(password, username) != user_struct->password) {
 			is_credentials_right = false;
 		}
 
@@ -524,9 +817,9 @@ bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct) {
 
 }
 
-void change_password(bool* ocpl,  FILE* usr_inf, user* user_struct) {
+void change_password(bool* ocpl, FILE* usr_inf, user* user_struct) {
 	bool Break;
-	
+
 
 	char newPassword[20], curPassword[20];
 
@@ -580,14 +873,14 @@ void change_password(bool* ocpl,  FILE* usr_inf, user* user_struct) {
 	//strcpy(user_struct->password, newPassword);
 	user_struct->password = hash(newPassword, user_struct->username);
 
-	fwrite(user_struct, sizeof(user),1,usr_inf);
-	fseek(usr_inf, -1*sizeof(user), SEEK_CUR);
+	fwrite(user_struct, sizeof(user), 1, usr_inf);
+	fseek(usr_inf, -1 * sizeof(user), SEEK_CUR);
 
 	return;
 
 }
 
-int main_menu(bool* ocpl,FILE* usr_inf, user* user_struct) {
+int main_menu(bool* ocpl, FILE* usr_inf, user* user_struct) {
 	char ch;
 
 	while (1) {
@@ -613,7 +906,7 @@ int main_menu(bool* ocpl,FILE* usr_inf, user* user_struct) {
 			break;
 
 		case 3:
-			change_password(ocpl,usr_inf, user_struct);
+			change_password(ocpl, usr_inf, user_struct);
 			break;
 		case 4:
 			return 1;
@@ -627,7 +920,8 @@ int main_menu(bool* ocpl,FILE* usr_inf, user* user_struct) {
 
 
 			system("cls");
-			fclose(usr_inf);
+			//fcloseall();
+			_fcloseall();
 			exit(0);
 			break;
 		default:
