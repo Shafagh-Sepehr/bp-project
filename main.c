@@ -11,9 +11,12 @@
 #include <time.h>
 #pragma warning(disable:4996)//disables visual studio errors about scanf and some other functions being unsafe
 
-
 #define I 25//line number
 #define J 26//column number
+
+char* index;
+bool is_solved=false;
+int green, yellow, black,index_line;
 
 
 /*Example codes.
@@ -33,14 +36,14 @@ typedef struct gameinfo {
 typedef struct user {
 	char username[20];
 	unsigned long password;
-	//gameinfo first_game;
-	//gameinfo second_game;
-	//gameinfo third_game;//oldest game
+	gameinfo first_game;
+	gameinfo second_game;
+	gameinfo third_game;//oldest game
 }user;
 
 typedef struct Node {
-	char *str;
-	struct Node* next,*prev;
+	char* str;
+	struct Node* next, * prev;
 } Node;
 
 
@@ -66,12 +69,26 @@ void show_cursor(void);
 unsigned long hash(char* s, char* username);
 void fill(FILE** file);
 char* fill_norm(void);
+char* fill_long(void);
+char* fill_hard(void);
+char* fill_left(void);
+char* fill_right(void);
+
 void newGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
-void color_print(char* str, char* padding, int y, bool* ocpl, bool a, int j,int sabz,int zard_begin,int zard_end);
+void color_print(char* str, char* padding, int y, bool* ocpl, bool a, int j, int sabz, int zard_begin, int zard_end);
 Node* create_Node();
 void make_linked_list(Node** head, Node** tail);
-void kill_linked_list(Node **head, Node** tail);
+void kill_linked_list(Node** head, Node** tail);
 void fill_one_node(Node** head, FILE* words);
+void fill_Linked_list(Node** head, Node** tail, int wave, FILE** words);
+void easy_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
+void medium_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
+void hard_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
+void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
+void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
+
+
+
 
 int main()
 {
@@ -81,18 +98,18 @@ int main()
 	printf("\033[;47m");//change background color to white
 	setcolor(0);//0-black 1-bit.Dark.Blue 2-dark.green 3-dark.cyan 4-red 5-dark.purple 6-orange 7-white 8-grey 9-blue 10-green 11-cyan 12-light.red 
 	//13-purple 14-very.light.orange 
-	
+
 	system("cls");
 
 
-	
+
 	user user_struct;
 	bool ocpl[35];//occupied_lines
 
 	//file section
-	
-	FILE* words[5] ; // 0 normal 1 long 2 hard 3 left 4 right
-	
+
+	FILE* words[5]; // 0 normal 1 long 2 hard 3 left 4 right
+
 	words[0] = fopen("normal_words.txt", "w+");
 	words[1] = fopen("long_words.txt", "w+");
 	words[2] = fopen("hard_words.txt", "w+");
@@ -115,7 +132,7 @@ int main()
 	//////file section end
 
 	fill(words);
-	
+
 
 
 	print_frame(I, J);
@@ -126,7 +143,7 @@ int main()
 
 	do {
 		account_menu(ocpl, usr_inf, &user_struct);
-	} while (main_menu(ocpl, usr_inf, &user_struct,words) == 1);
+	} while (main_menu(ocpl, usr_inf, &user_struct, words) == 1);
 
 
 
@@ -162,7 +179,7 @@ void make_linked_list(Node** head, Node** tail) {
 	(*head) = create_Node();
 	(*tail) = (*head);
 
-	for(int i=0;i<10;i++){
+	for (int i = 0; i < 10; i++) {
 		temp_pointer = create_Node();
 		temp_pointer->prev = (*tail);//new node's prev will be the last node
 		(*tail)->next = temp_pointer;//last node's next will be new node
@@ -184,15 +201,15 @@ void kill_linked_list(Node** head, Node** tail) {
 void fill_one_node(Node** head, FILE* words) {
 	char buffer[25];
 	Node* temp_node = (*head);
-	
-	while(temp_node->str!=NULL)
+
+	while (temp_node->str != NULL)
 		temp_node = temp_node->next;
 
 
-		fgets(buffer, 25, words);//getting a word from file
-		buffer[strlen(buffer) - 1] = '\0';//remove \n from end of buffer
+	fgets(buffer, 25, words);//getting a word from file
+	buffer[strlen(buffer) - 1] = '\0';//remove \n from end of buffer
 
-		temp_node->str = (char*)malloc(strlen(buffer)+1);
+	temp_node->str = (char*)malloc(strlen(buffer) + 1);
 
 	if (temp_node->str == NULL) {
 		gotoxy(0, 0);
@@ -202,13 +219,131 @@ void fill_one_node(Node** head, FILE* words) {
 		exit(1);
 	}
 
-		strcpy(temp_node->str, buffer);//copying the word in a node
-		
-	
-	
+	strcpy(temp_node->str, buffer);//copying the word in a node
+
+
+
 	return;
 
 }
+
+void fill_Linked_list(Node** head, Node** tail, int wave,FILE** words) {
+	int nrm, lng, hrd,ctr=0;
+	switch (wave)
+	{
+	case 1:
+		nrm = 9; lng = 0; hrd = 1;
+
+		for (int i = 0; i < 10; i++,ctr++) {
+			if (hrd && ctr >= 5 && (rand() % (10 - ctr)) == 0) {
+				fill_one_node(head, words[2]);
+				hrd--;
+			}
+			else {
+				fill_one_node(head, words[0]);
+			}
+
+		}
+
+		break;
+	case 2:
+		nrm = 8; lng = 1; hrd = 1;
+
+		for (int i = 0; i < 10; i++, ctr++) {
+			if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
+				fill_one_node(head, words[2]);
+				hrd--;
+			}
+			else if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
+				fill_one_node(head, words[1]);
+				lng--;
+			}
+			else if(nrm) {
+				fill_one_node(head, words[0]);
+			}
+			
+		}
+
+		break;
+	case 3:
+		nrm = 7; lng = 2; hrd = 1;
+
+		for (int i = 0; i < 10; i++, ctr++) {
+			if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
+				fill_one_node(head, words[2]);
+				hrd--;
+			}
+			else if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
+				fill_one_node(head, words[1]);
+				lng--;
+			}
+			else if (nrm) {
+				fill_one_node(head, words[0]);
+			}
+
+		}
+
+		break;
+	case 4:
+		nrm = 6; lng = 2; hrd = 2;
+
+		for (int i = 0; i < 10; i++, ctr++) {
+			if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
+				fill_one_node(head, words[2]);
+				hrd--;
+			}
+			else if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
+				fill_one_node(head, words[1]);
+				lng--;
+			}
+			else if (nrm) {
+				fill_one_node(head, words[0]);
+			}
+
+		}
+
+		break;
+	case 5:
+		nrm = 5; lng = 3; hrd = 2;
+
+		for (int i = 0; i < 10; i++, ctr++) {
+			if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
+				fill_one_node(head, words[2]);
+				hrd--;
+			}
+			else if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
+				fill_one_node(head, words[1]);
+				lng--;
+			}
+			else if (nrm) {
+				fill_one_node(head, words[0]);
+			}
+
+		}
+
+		break;
+
+	default:
+		nrm = 4; lng = 3; hrd = 3;
+
+		for (int i = 0; i < 10; i++, ctr++) {
+			if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
+				fill_one_node(head, words[2]);
+				hrd--;
+			}
+			else if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
+				fill_one_node(head, words[1]);
+				lng--;
+			}
+			else if (nrm) {
+				fill_one_node(head, words[0]);
+			}
+
+		}
+		break;
+	}
+}
+
 
 char* fill_norm(void) {
 	char* word;
@@ -218,16 +353,16 @@ char* fill_norm(void) {
 	while (word_size < min_size) {
 		word_size += rand() % (max_size - min_size + 2);
 	}
-	word = (char*)malloc(sizeof(char) * word_size );
+	word = (char*)malloc(sizeof(char) * word_size);
 	if (word == NULL) {
 		fprintf(stderr, "word alloc failed");
 		exit(1);
 	}
-	
+
 	int r;
 	for (int i = 0; i < word_size; i++) {
 		do {
-			r = rand()%127;
+			r = rand() % 127;
 		} while (!((r >= 48 && r <= 57) || (r >= 65 && r <= 90) || (r >= 97 && r <= 122)));
 		word[i] = r;
 
@@ -257,8 +392,8 @@ char* fill_long(void) {
 	char r;
 	for (int i = 0; i < word_size; i++) {
 		do {
-			r = rand()%125;
-		} while (     !((r >= 48 && r <= 57) || (r >= 65 && r <= 90) || (r >= 97 && r <= 122))     );
+			r = rand() % 125;
+		} while (!((r >= 48 && r <= 57) || (r >= 65 && r <= 90) || (r >= 97 && r <= 122)));
 		word[i] = r;
 
 	}
@@ -275,7 +410,7 @@ char* fill_hard(void) {
 	while (word_size < min_size) {
 		word_size += rand() % (max_size - min_size + 2);
 	}
-	word = (char*)malloc(sizeof(char) *word_size );
+	word = (char*)malloc(sizeof(char) * word_size);
 	if (word == NULL) {
 		fprintf(stderr, "word alloc failed");
 		exit(1);
@@ -284,7 +419,7 @@ char* fill_hard(void) {
 	int r;
 	for (int i = 0; i < word_size; i++) {
 		do {
-			r = rand()%128;
+			r = rand() % 128;
 		} while (!(r >= 33 && r <= 126));
 		word[i] = r;
 
@@ -302,7 +437,7 @@ char* fill_left(void) {
 	while (word_size < min_size) {
 		word_size += rand() % (max_size - min_size + 2);
 	}
-	word = (char*)malloc(sizeof(char) * word_size );
+	word = (char*)malloc(sizeof(char) * word_size);
 	if (word == NULL) {
 		fprintf(stderr, "word alloc failed");
 		exit(1);
@@ -386,7 +521,7 @@ char* fill_right(void) {
 	while (word_size < min_size) {
 		word_size += rand() % (max_size - min_size + 2);
 	}
-	word = (char*)malloc(sizeof(char) * word_size );
+	word = (char*)malloc(sizeof(char) * word_size);
 	if (word == NULL) {
 		fprintf(stderr, "word alloc failed");
 		exit(1);
@@ -579,18 +714,18 @@ void color_print(char* str, char* padding, int y, bool* ocpl, bool a, int j, int
 	else
 		gotoxy(l_padding(str, j), y);
 
-	
+
 	int len = strlen(str);
 	int k = 0;
 	if (green) {
 		setcolor(10);//green
 
-		for (int i = 0; i < green; i++,k++) {
+		for (int i = 0; i < green; i++, k++) {
 			printf("%c", str[k]);
 		}
 
 	}
-	
+
 	if (yellow) {
 		setcolor(6);//orange
 
@@ -599,7 +734,7 @@ void color_print(char* str, char* padding, int y, bool* ocpl, bool a, int j, int
 		}
 
 	}
-	
+
 	if (black) {
 
 		setcolor(0);//black
@@ -1024,21 +1159,21 @@ void newGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 		ch -= '0';
 		switch (ch) {
 		case 1:
-
-			break;
+			easy_game(ocpl,usr_inf,user_struct,words);
+				break;
 
 		case 2:
-
-			break;
+			medium_game(ocpl,usr_inf,user_struct,words);
+				break;
 
 		case 3:
-			
-			break;
+			hard_game(ocpl,usr_inf,user_struct,words);
+				break;
 		case 4:
-			
-			break;
+			left_hand_game(ocpl,usr_inf,user_struct,words);
+				break;
 		case 5:
-
+			right_hand_game(ocpl,usr_inf,user_struct,words);
 			break;
 		case 6:
 			return;
@@ -1103,6 +1238,28 @@ int main_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 		}
 	}
 }
+
+void easy_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
+	Node* head, * tail;
+	make_linked_list(&head, &tail);
+}
+
+void medium_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
+
+}
+
+void hard_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
+
+}
+
+void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
+
+}
+
+void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
+
+}
+
 
 /*
 this is for time and date
