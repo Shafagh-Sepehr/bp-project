@@ -38,6 +38,10 @@ typedef struct user {
 	//gameinfo third_game;//oldest game
 }user;
 
+typedef struct Node {
+	char *str;
+	struct Node* next,*prev;
+} Node;
 
 
 void my_callback_on_key_arrival(char c);
@@ -64,7 +68,10 @@ void fill(FILE** file);
 char* fill_norm(void);
 void newGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
 void color_print(char* str, char* padding, int y, bool* ocpl, bool a, int j,int sabz,int zard_begin,int zard_end);
-
+Node* create_Node();
+void make_linked_list(Node** head, Node** tail);
+void kill_linked_list(Node **head, Node** tail);
+void fill_one_node(Node** head, FILE* words);
 
 int main()
 {
@@ -94,6 +101,7 @@ int main()
 
 	if (words[0] == NULL || words[1] == NULL || words[2] == NULL || words[3] == NULL || words[4] == NULL) {
 		fprintf(stderr, "word files didn't open properly.");
+		fcloseall();
 		return 1;
 	}
 
@@ -101,6 +109,7 @@ int main()
 
 	if (usr_inf == NULL || fseek(usr_inf, 0, SEEK_SET) != 0) {
 		fprintf(stderr, "user_info file didn't open properly.");
+		fcloseall();
 		return 1;
 	}
 	//////file section end
@@ -127,6 +136,77 @@ int main()
 }
 void my_callback_on_key_arrival(char c) {
 
+
+}
+
+Node* create_Node() {
+	Node* x;
+	x = (Node*)malloc(sizeof(Node));
+	if (x == NULL) {
+		gotoxy(0, 0);
+		system("cls");
+		fcloseall();
+		fprintf(stderr, "node memory allocation failed!");
+		exit(1);
+	}
+
+	x->str = NULL;
+	x->next = NULL;
+	x->prev = NULL;
+	return x;//returns address to this node
+}
+
+void make_linked_list(Node** head, Node** tail) {
+	Node* temp_pointer;
+
+	(*head) = create_Node();
+	(*tail) = (*head);
+
+	for(int i=0;i<10;i++){
+		temp_pointer = create_Node();
+		temp_pointer->prev = (*tail);//new node's prev will be the last node
+		(*tail)->next = temp_pointer;//last node's next will be new node
+		(*tail) = temp_pointer;//new node is now the last node
+	}
+	return;
+}
+
+void kill_linked_list(Node** head, Node** tail) {
+	for (int i = 0; i < 10; i++) {
+		free((*tail)->str);
+		(*tail) = (*tail)->prev;
+		free((*tail)->next);
+	}
+	tail = head = NULL;
+	return;
+}
+
+void fill_one_node(Node** head, FILE* words) {
+	char buffer[25];
+	Node* temp_node = (*head);
+	
+	while(temp_node->str!=NULL)
+		temp_node = temp_node->next;
+
+
+		fgets(buffer, 25, words);//getting a word from file
+		buffer[strlen(buffer) - 1] = '\0';//remove \n from end of buffer
+
+		temp_node->str = (char*)malloc(strlen(buffer)+1);
+
+	if (temp_node->str == NULL) {
+		gotoxy(0, 0);
+		system("cls");
+		fcloseall();
+		fprintf(stderr, "node str memory allocation failed!");
+		exit(1);
+	}
+
+		strcpy(temp_node->str, buffer);//copying the word in a node
+		
+	
+	
+	return;
 
 }
 
