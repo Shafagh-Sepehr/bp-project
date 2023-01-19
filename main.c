@@ -14,10 +14,10 @@
 #define I 25//line number
 #define J 26//column number
 
-char* index;
-bool is_solved=false;
-int green, yellow, black,index_line;
-
+char index[25];
+bool is_solved = false;
+int index_line, color[25], score;//color[x]=  0->green 1->yellow 2->black
+bool* ocpl_copy;
 
 /*Example codes.
 setcolor(1);
@@ -48,11 +48,15 @@ typedef struct Node {
 
 
 void my_callback_on_key_arrival(char c);
+int char_index();
+bool is_word_solved();
+void reset_color_array();
 void print_frame(int _i, int _j);
 void print_frame2(int _i, int _j);
 void welcome(bool* ocpl);
 int	 l_padding(char str[I], int j);
 void ocpl_clean(bool* ocpl);
+void ocpl_purge_all();
 void account_menu(bool* ocpl, FILE* usr_inf, user* user_struct);
 void sign_up(bool* ocpl, FILE* usr_inf);
 bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct);
@@ -73,20 +77,20 @@ char* fill_long(void);
 char* fill_hard(void);
 char* fill_left(void);
 char* fill_right(void);
-
 void newGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
 void color_print(char* str, char* padding, int y, bool* ocpl, bool a, int j, int sabz, int zard_begin, int zard_end);
+void color_print2(char* str, int y, int j);
 Node* create_Node();
 void make_linked_list(Node** head, Node** tail);
 void kill_linked_list(Node** head, Node** tail);
-void fill_one_node(Node** head, FILE* words);
-void fill_Linked_list(Node** head, Node** tail, int wave, FILE** words);
+void fill_one_node(Node* head, FILE* words);
+void fill_Linked_list(Node* head, int wave, FILE** words);
 void easy_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
 void medium_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
 void hard_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
 void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
 void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
-
+int do_wave(bool* ocpl, int wave_time, Node* head);
 
 
 
@@ -94,7 +98,6 @@ int main()
 {
 	srand(time(NULL));
 	hide_cursor();
-
 	printf("\033[;47m");//change background color to white
 	setcolor(0);//0-black 1-bit.Dark.Blue 2-dark.green 3-dark.cyan 4-red 5-dark.purple 6-orange 7-white 8-grey 9-blue 10-green 11-cyan 12-light.red 
 	//13-purple 14-very.light.orange 
@@ -103,9 +106,13 @@ int main()
 
 
 
+
+	reset_color_array();
+
+
 	user user_struct;
 	bool ocpl[35];//occupied_lines
-
+	ocpl_copy = ocpl;
 	//file section
 
 	FILE* words[5]; // 0 normal 1 long 2 hard 3 left 4 right
@@ -140,21 +147,18 @@ int main()
 	welcome(ocpl);//welcome page
 
 	getch();//wait for any key to be pressed
-
+	//HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	do {
 		account_menu(ocpl, usr_inf, &user_struct);
 	} while (main_menu(ocpl, usr_inf, &user_struct, words) == 1);
 
 
 
-	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
-	WaitForSingleObject(thread_id, INFINITE);
+
+	//WaitForSingleObject(thread_id, INFINITE);
 	return 0;
 }
-void my_callback_on_key_arrival(char c) {
 
-
-}
 
 Node* create_Node() {
 	Node* x;
@@ -198,9 +202,9 @@ void kill_linked_list(Node** head, Node** tail) {
 	return;
 }
 
-void fill_one_node(Node** head, FILE* words) {
+void fill_one_node(Node* head, FILE* words) {
 	char buffer[25];
-	Node* temp_node = (*head);
+	Node* temp_node = head;
 
 	while (temp_node->str != NULL)
 		temp_node = temp_node->next;
@@ -227,14 +231,14 @@ void fill_one_node(Node** head, FILE* words) {
 
 }
 
-void fill_Linked_list(Node** head, Node** tail, int wave,FILE** words) {
-	int nrm, lng, hrd,ctr=0;
+void fill_Linked_list(Node* head, int wave, FILE** words) {
+	int nrm, lng, hrd, ctr = 0;
 	switch (wave)
 	{
 	case 1:
 		nrm = 9; lng = 0; hrd = 1;
 
-		for (int i = 0; i < 10; i++,ctr++) {
+		for (int i = 0; i < 10; i++, ctr++) {
 			if (hrd && ctr >= 5 && (rand() % (10 - ctr)) == 0) {
 				fill_one_node(head, words[2]);
 				hrd--;
@@ -258,10 +262,10 @@ void fill_Linked_list(Node** head, Node** tail, int wave,FILE** words) {
 				fill_one_node(head, words[1]);
 				lng--;
 			}
-			else if(nrm) {
+			else if (nrm) {
 				fill_one_node(head, words[0]);
 			}
-			
+
 		}
 
 		break;
@@ -347,7 +351,7 @@ void fill_Linked_list(Node** head, Node** tail, int wave,FILE** words) {
 
 char* fill_norm(void) {
 	char* word;
-	int max_size = 10;
+	int max_size = 5;
 	int min_size = 4;
 	int word_size = rand() % (max_size + 1);
 	while (word_size < min_size) {
@@ -376,8 +380,8 @@ char* fill_norm(void) {
 
 char* fill_long(void) {
 	char* word;
-	int max_size = 19;
-	int min_size = 11;
+	int max_size = 16;
+	int min_size = 9;
 	int word_size = rand() % (max_size + 1);
 	while (word_size < min_size) {
 		word_size += rand() % (max_size - min_size + 2);
@@ -404,7 +408,7 @@ char* fill_long(void) {
 
 char* fill_hard(void) {
 	char* word;
-	int max_size = 17;
+	int max_size = 12;
 	int min_size = 6;
 	int word_size = rand() % (max_size + 1);
 	while (word_size < min_size) {
@@ -637,6 +641,17 @@ void ocpl_clean(bool* ocpl) {//line cleaner
 	}
 }
 
+void ocpl_purge_all() {
+	char space[] = "                        ";//25 spaces
+	for (int i = 0; i < I; i++) {
+
+		gotoxy(1, i);//goes to the line in which text is written
+		printf("%s", space);//over writes the line with space
+
+	}
+	ocpl_clean(ocpl_copy);
+}
+
 void print_frame2(int _i, int _j) {
 	gotoxy(0, 0);
 	for (int i = 0; i < _i; i++) {
@@ -708,7 +723,29 @@ void print(char* str, char* padding, int y, bool* ocpl, bool a, int j) {// a det
 	ocpl[y] = false;
 }
 
-void color_print(char* str, char* padding, int y, bool* ocpl, bool a, int j, int green, int yellow, int black) {
+void color_print2(char* str, int y, int j) {
+	int len = strlen(str);
+	gotoxy(l_padding(str, j), y);
+	ocpl_copy[y] = false;
+	for (int i = 0; i < len; i++) {
+		if (color[i] == 0) {
+			setcolor(10); printf("%c", str[i]); setcolor(0);
+		}
+
+		else if (color[i] == 1) {
+			setcolor(6); printf("%c", str[i]); setcolor(0);
+		}
+
+		else if (color[i] == 2) {
+			printf("%c", str[i]);
+
+		}
+	}
+	return;
+}
+
+
+void color_print(char* str, char* padding, int y, bool* ocpl, bool a, int j, int green, int yellow, int black) {//dead function
 	if (a)
 		gotoxy(l_padding(padding, j), y);
 	else
@@ -812,7 +849,7 @@ void get_user(char* username) {
 
 void account_menu(bool* ocpl, FILE* usr_inf, user* user_struct) {
 
-
+	bool BREAK;
 
 	while (1) {
 
@@ -828,36 +865,43 @@ void account_menu(bool* ocpl, FILE* usr_inf, user* user_struct) {
 
 		print("3-Exit", "1-Sign In", 6, ocpl, true, J);
 
+		while (1) {
+			BREAK = false;
+			int ch = getch();
+			ch -= '0';
+			switch (ch) {
+			case 1:
+				system("cls");//clears screen completly
+				sign_up(ocpl, usr_inf);
+				BREAK = true;
+				break;
 
-		int ch = getch();
-		ch -= '0';
-		switch (ch) {
-		case 1:
-			system("cls");//clears screen completly
-			sign_up(ocpl, usr_inf);
-			break;
+			case 2:
+				ocpl_clean(ocpl);
+				if (log_in(ocpl, usr_inf, user_struct))
+					return;
+				BREAK = true;
+				break;
 
-		case 2:
-			ocpl_clean(ocpl);
-			if (log_in(ocpl, usr_inf, user_struct))
-				return;
-			break;
+			case 3://exit
+				ocpl_clean(ocpl);
 
-		case 3://exit
-			ocpl_clean(ocpl);
+				print("Thanks For Your Time", "", 4, ocpl, false, J);
 
-			print("Thanks For Your Time", "", 4, ocpl, false, J);
-
-			countdown(l_padding("0", J), wherey() + 1, 3);
+				countdown(l_padding("0", J), wherey() + 1, 3);
 
 
-			system("cls");
-			_fcloseall();
-			exit(0);
-			break;
-		default:
+				system("cls");
+				_fcloseall();
+				exit(0);
+				break;
+			default:
 
-			break;
+				break;
+			}
+			if (BREAK) {
+				break;
+			}
 		}
 	}
 }
@@ -1038,7 +1082,7 @@ bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct) {
 		}
 
 		if (is_credentials_right) {
-			break;
+			break;//to the menu
 		}
 		else {
 			print_frame(11, 40);
@@ -1068,7 +1112,7 @@ bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct) {
 
 		}
 	}
-
+	return true;
 
 }
 
@@ -1135,6 +1179,8 @@ void change_password(bool* ocpl, FILE* usr_inf, user* user_struct) {
 
 }
 
+
+
 void newGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 
 	char ch;
@@ -1159,21 +1205,21 @@ void newGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 		ch -= '0';
 		switch (ch) {
 		case 1:
-			easy_game(ocpl,usr_inf,user_struct,words);
-				break;
+			easy_game(ocpl, usr_inf, user_struct, words);
+			break;
 
 		case 2:
-			medium_game(ocpl,usr_inf,user_struct,words);
-				break;
+			medium_game(ocpl, usr_inf, user_struct, words);
+			break;
 
 		case 3:
-			hard_game(ocpl,usr_inf,user_struct,words);
-				break;
+			hard_game(ocpl, usr_inf, user_struct, words);
+			break;
 		case 4:
-			left_hand_game(ocpl,usr_inf,user_struct,words);
-				break;
+			left_hand_game(ocpl, usr_inf, user_struct, words);
+			break;
 		case 5:
-			right_hand_game(ocpl,usr_inf,user_struct,words);
+			right_hand_game(ocpl, usr_inf, user_struct, words);
 			break;
 		case 6:
 			return;
@@ -1239,17 +1285,268 @@ int main_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 	}
 }
 
+int char_index() {
+
+	for (int i = 0; i < 25; i++) {
+		if (color[i] == 2)
+			return i;
+	}
+}
+
+bool is_word_solved() {
+	int len = strlen(index);
+	for (int i = 0; i < len; i++) {
+		if (color[i] != 0)
+			return false;
+	}
+	return true;
+}
+
+void reset_color_array() {
+	for (int i = 0; i < 25; i++)
+		color[i] = 2;
+}
+
+void my_callback_on_key_arrival(char c) {
+
+	int len = strlen(index);
+
+	int a = char_index();
+
+	if (c == index[a]) {
+		color[a] = 0;
+	}
+	else if (c == '\b') {
+		color[a - 1] = 2;
+	}
+	else {
+		color[a] = 1;
+	}
+	color_print2(index, index_line, J);
+	if (is_word_solved()) {
+		print("                     ", "", index_line, ocpl_copy, false, J);
+		is_solved = true;
+		score = len;
+	}
+
+}
+
+int do_wave(bool* ocpl, int wave_time, Node* head) {
+	Node* tmp_node;
+	int line = 1, ind = 1, final_score = 0;
+	while (1) {
+		tmp_node = head;
+
+		if (line > 0 && ind <= 1) {
+			if (ind == 1) {
+				index_line = line;
+				strcpy(index, tmp_node->str);
+				color_print2(index, index_line, J);
+			}
+			else {
+				print(tmp_node->str, "", line, ocpl, false, J);
+
+			}
+		}
+
+		tmp_node = tmp_node->next;
+		if ((line - 1) > 0 && ind <= 2) {
+			if (ind == 2) {
+				index_line = line - 1;
+				strcpy(index, tmp_node->str);
+				color_print2(index, index_line, J);
+			}
+			else {
+				print(tmp_node->str, "", line - 1, ocpl, false, J);
+
+			}
+		}
+
+		tmp_node = tmp_node->next;
+		if ((line - 2) > 0 && ind <= 3) {
+			if (ind == 3) {
+				index_line = line - 2;
+				strcpy(index, tmp_node->str);
+				color_print2(index, index_line, J);
+			}
+			else {
+				print(tmp_node->str, "", line - 2, ocpl, false, J);
+
+			}
+		}
+
+		tmp_node = tmp_node->next;
+		if ((line - 3) > 0 && ind <= 4) {
+			if (ind == 4) {
+				index_line = line - 3;
+				strcpy(index, tmp_node->str);
+				color_print2(index, index_line, J);
+			}
+			else {
+				print(tmp_node->str, "", line - 3, ocpl, false, J);
+
+			}
+		}
+
+		tmp_node = tmp_node->next;
+		if ((line - 4) > 0 && ind <= 5) {
+			if (ind == 5) {
+				index_line = line - 4;
+				strcpy(index, tmp_node->str);
+				color_print2(index, index_line, J);
+			}
+			else {
+				print(tmp_node->str, "", line - 4, ocpl, false, J);
+
+			}
+		}
+
+		tmp_node = tmp_node->next;
+		if ((line - 5) > 0 && ind <= 6) {
+			if (ind == 6) {
+				index_line = line - 5;
+				strcpy(index, tmp_node->str);
+				color_print2(index, index_line, J);
+			}
+			else {
+				print(tmp_node->str, "", line - 5, ocpl, false, J);
+
+			}
+		}
+
+		tmp_node = tmp_node->next;
+		if ((line - 6) > 0 && ind <= 7) {
+			if (ind == 7) {
+				index_line = line - 6;
+				strcpy(index, tmp_node->str);
+				color_print2(index, index_line, J);
+			}
+			else {
+				print(tmp_node->str, "", line - 6, ocpl, false, J);
+
+			}
+		}
+
+		tmp_node = tmp_node->next;
+		if ((line - 7) > 0 && ind <= 8) {
+			if (ind == 8) {
+				index_line = line - 7;
+				strcpy(index, tmp_node->str);
+				color_print2(index, index_line, J);
+			}
+			else {
+				print(tmp_node->str, "", line - 7, ocpl, false, J);
+
+			}
+		}
+
+		tmp_node = tmp_node->next;
+		if ((line - 8) > 0 && ind <= 9) {
+			if (ind == 9) {
+				index_line = line - 8;
+				strcpy(index, tmp_node->str);
+				color_print2(index, index_line, J);
+			}
+			else {
+				print(tmp_node->str, "", line - 8, ocpl, false, J);
+
+			}
+		}
+
+		tmp_node = tmp_node->next;
+		if ((line - 9) > 0 && ind <= 10) {
+			if (ind == 10) {
+				index_line = line - 9;
+				strcpy(index, tmp_node->str);
+				color_print2(index, index_line, J);
+			}
+			else {
+				print(tmp_node->str, "", line - 9, ocpl, false, J);
+
+			}
+		}
+
+
+
+		_sleep(wave_time / 10);
+		line++;
+		ocpl_clean(ocpl);
+		if (is_solved) {
+			is_solved = false;
+			reset_color_array();
+			ind++;
+			final_score += score;
+			if (ind > 10) {
+				return final_score;
+			}
+		}
+	}
+}
+
+
 void easy_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
+	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	Node* head, * tail;
-	make_linked_list(&head, &tail);
+	int wave = 1, wave_time, score = 0;
+
+	print_frame(I, J);
+
+	while (1) {
+		make_linked_list(&head, &tail);
+		fill_Linked_list(head, wave, words);
+		wave_time = (int)(20 * (pow(0.8, wave - 1)) * 1000);
+		if (wave_time < 1000)
+			wave_time = 1000;
+
+		score += do_wave(ocpl, wave_time, head);
+		wave++;
+		if (wave_time == 1000) {
+			//end program here
+		}
+		kill_linked_list(&head, &tail);
+	}
+
+
 }
 
 void medium_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
+	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
+	Node* head, * tail;
+	int wave = 1, wave_time, score = 0;
+	make_linked_list(&head, &tail);
+	print_frame(I, J);
 
+	while (1) {
+		wave_time = 10 * (int)(pow(0.7, wave - 1)) * 1000;
+		if (wave_time < 1000)
+			wave_time = 1000;
+		fill_Linked_list(head, wave, words);
+		score += do_wave(ocpl, wave_time, head);
+		wave++;
+		if (wave_time == 1000) {
+			//end program here
+		}
+	}
 }
 
 void hard_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
+	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
+	Node* head, * tail;
+	int wave = 1, wave_time, score = 0;
+	make_linked_list(&head, &tail);
+	print_frame(I, J);
 
+	while (1) {
+		wave_time = 8 * (int)(pow(0.6, wave - 1)) * 1000;
+		if (wave_time < 1000)
+			wave_time = 1000;
+		fill_Linked_list(head, wave, words);
+		score += do_wave(ocpl, wave_time, head);
+		wave++;
+		if (wave_time == 1000) {
+			//end program here
+		}
+	}
 }
 
 void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
