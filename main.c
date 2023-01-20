@@ -9,12 +9,13 @@
 #include "colorize.h"
 #include "conio_wherexy.h"
 #include <time.h>
+
 #pragma warning(disable:4996)//disables visual studio errors about scanf and some other functions being unsafe
 
 #define I 25//line number
 #define J 26//column number
 
-#define EASY_GAME_TIME 20// easy game wave time
+#define EASY_GAME_TIME 5// easy game wave time
 #define MEDIUM_GAME_TIME 15// medium game wave time
 #define HARD_GAME_TIME 10 // hard game wave time
 #define ONE_HAND_GAME_TIME 15 //one hand game wave time
@@ -44,7 +45,9 @@ typedef struct gameinfo {
 }gameinfo;
 
 typedef struct user {
-	char username[20];
+	char username[20], first_name[20], last_name[20];
+
+	int age;
 	unsigned long password;
 	gameinfo game[3];
 
@@ -60,7 +63,7 @@ bool is_solved = false;
 int index_line, color[25], score, ind = 1;//color[x]=  0->green 1->yellow 2->black
 bool* ocpl_copy;
 Node* global_node;
-bool End;
+bool End = true;
 
 /*Example codes.
 setcolor(1);
@@ -86,8 +89,9 @@ void sign_up(bool* ocpl, FILE* usr_inf);
 bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct);
 void countdown(int x, int y, int sec);
 void print(char* str, char* padding, int y, bool* ocpl, bool a, int j);
-void get_pass(char* password);
-void get_user(char* username);
+void get_pass(char* password);//gets a 19 char long string but dont show it
+void get_user(char* username);//gets a 19 char long string
+int get_age();
 bool is_user_unique(FILE* usr_inf, char* username);
 bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, user* user_struct);
 int  main_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
@@ -274,7 +278,7 @@ void fill_Linked_list(Node* head, int wave, FILE** words) {
 	case 1:
 		nrm = 9; lng = 0; hrd = 1;
 
-		for (int i = 0; i < 10; i++, ctr++) {
+		/*for (int i = 0; i < 10; i++, ctr++) {
 			if (hrd && ctr >= 5 && (rand() % (10 - ctr)) == 0) {
 				fill_one_node(head, words[2]);
 				hrd--;
@@ -283,104 +287,45 @@ void fill_Linked_list(Node* head, int wave, FILE** words) {
 				fill_one_node(head, words[0]);
 			}
 
-		}
+		}*/
 
 		break;
 	case 2:
 		nrm = 8; lng = 1; hrd = 1;
-
-		for (int i = 0; i < 10; i++, ctr++) {
-			if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
-				fill_one_node(head, words[2]);
-				hrd--;
-			}
-			else if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
-				fill_one_node(head, words[1]);
-				lng--;
-			}
-			else if (nrm) {
-				fill_one_node(head, words[0]);
-			}
-
-		}
-
 		break;
+
 	case 3:
 		nrm = 7; lng = 2; hrd = 1;
-
-		for (int i = 0; i < 10; i++, ctr++) {
-			if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
-				fill_one_node(head, words[2]);
-				hrd--;
-			}
-			else if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
-				fill_one_node(head, words[1]);
-				lng--;
-			}
-			else if (nrm) {
-				fill_one_node(head, words[0]);
-			}
-
-		}
-
 		break;
+
 	case 4:
 		nrm = 6; lng = 2; hrd = 2;
-
-		for (int i = 0; i < 10; i++, ctr++) {
-			if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
-				fill_one_node(head, words[2]);
-				hrd--;
-			}
-			else if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
-				fill_one_node(head, words[1]);
-				lng--;
-			}
-			else if (nrm) {
-				fill_one_node(head, words[0]);
-			}
-
-		}
-
 		break;
+
 	case 5:
 		nrm = 5; lng = 3; hrd = 2;
-
-		for (int i = 0; i < 10; i++, ctr++) {
-			if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
-				fill_one_node(head, words[2]);
-				hrd--;
-			}
-			else if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
-				fill_one_node(head, words[1]);
-				lng--;
-			}
-			else if (nrm) {
-				fill_one_node(head, words[0]);
-			}
-
-		}
-
 		break;
 
 	default:
 		nrm = 4; lng = 3; hrd = 3;
 
-		for (int i = 0; i < 10; i++, ctr++) {
-			if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
-				fill_one_node(head, words[2]);
-				hrd--;
-			}
-			else if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
-				fill_one_node(head, words[1]);
-				lng--;
-			}
-			else if (nrm) {
-				fill_one_node(head, words[0]);
-			}
 
-		}
 		break;
+	}
+	for (int i = 0; i < 10; i++, ctr++) {
+		if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
+			fill_one_node(head, words[2]);
+			hrd--;
+		}
+		else if ((lng && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
+			fill_one_node(head, words[1]);
+			lng--;
+		}
+		else if (nrm) {
+			fill_one_node(head, words[0]);
+			nrm--;
+		}
+
 	}
 }
 
@@ -643,22 +588,27 @@ void fill(FILE** file) {
 	for (int i = 0; i < 10000; i++) {
 		fprintf(file[0], "%s\n", fill_norm());
 	}
+	fseek(file[0], 0, SEEK_SET);
 
 	for (int i = 0; i < 10000; i++) {
 		fprintf(file[1], "%s\n", fill_long());
 	}
+	fseek(file[1], 0, SEEK_SET);
 
 	for (int i = 0; i < 10000; i++) {
 		fprintf(file[2], "%s\n", fill_hard());
 	}
+	fseek(file[2], 0, SEEK_SET);
 
 	for (int i = 0; i < 10000; i++) {
 		fprintf(file[3], "%s\n", fill_left());
 	}
+	fseek(file[3], 0, SEEK_SET);
 
 	for (int i = 0; i < 10000; i++) {
 		fprintf(file[4], "%s\n", fill_right());
 	}
+	fseek(file[4], 0, SEEK_SET);
 
 }
 
@@ -851,6 +801,51 @@ void get_pass(char* password) {
 	hide_cursor();
 }
 
+int get_age() {
+	char username[5];
+
+	show_cursor();
+
+	int p = 0;
+	do {
+		username[p] = getch();
+		if (username[p] == '\b') {
+			if (p == 0) {
+
+			}
+			else {
+
+				gotoxy(wherex() - 2, wherey() - 1);
+				printf(" ");
+				gotoxy(wherex() - 2, wherey() - 1);
+				p--;
+			}
+		}
+		else if (p >= 3) {
+
+		}
+		else if (username[p] != '\r') {
+			printf("%c", username[p]);
+			p++;
+		}
+
+	} while (p == 0 || username[p] != '\r');
+	username[p] = '\0';
+
+	switch (p)
+	{
+	case 1: return username[0] - '0';
+	case 2: return (username[1] - '0') + ((username[0] - '0') * 10);
+	case 3:return (username[2] - '0') + ((username[1] - '0') * 10) + ((username[0] - '0') * 100);
+	default:
+		break;
+	}
+
+
+
+	hide_cursor();
+}
+
 void get_user(char* username) {
 	show_cursor();
 
@@ -988,18 +983,24 @@ void sign_up(bool* ocpl, FILE* usr_inf) {
 	char ch;
 	bool Break;
 
-	char username[20], password[20];
+	char username[20], password[20], first_name[20], last_name[20];
+	int age;
+
 	while (1) {
+
+		system("cls");
+		print_frame(17, 50);
+
 		Break = false;
-		print("SIGN UP", "", 2, ocpl, false, 48);
-		print("max length = 19 characters", "", 8, ocpl, false, 49);
+		print("SIGN UP", "", 2, ocpl, false, 50);
+		print("max length = 19 characters", "", 14, ocpl, false, 51);
 
 
-		print("                                 ", "", 6, ocpl, false, 48);//clears username is taken massage if it's there
+
 		print("Choose A Username: ", "", 4, ocpl, false, J);
 		get_user(username);
 
-		print("                                 ", "choose a password: ", 6, ocpl, true, 48);//clears username is taken massage if it's there
+
 		print("Choose A Password: ", "", 6, ocpl, false, J);
 		get_pass(password);
 
@@ -1007,10 +1008,10 @@ void sign_up(bool* ocpl, FILE* usr_inf) {
 			break;
 		else {
 			system("cls");
-			print_frame(11, 48);
-			print("Username Is Already Taken", "", 6, ocpl, false, 48);
+			print_frame(7, 48);
+			print("Username Is Already Taken", "", 2, ocpl, false, 50);
 
-			print("  1-Try Again 2-Return Back  ", "", 8, ocpl, false, 48);
+			print("  1-Try Again 2-Return Back  ", "", 4, ocpl, false, 50);
 
 			while (1) {
 				ch = getch();
@@ -1032,11 +1033,28 @@ void sign_up(bool* ocpl, FILE* usr_inf) {
 				if (Break)
 					break;
 			}
-
 		}
 	}
 
-	//strcpy(temp.password, password);
+
+
+	print("Enter Your First Name: ", "Choose A Password: ", 8, ocpl, true, J);
+	get_user(first_name);
+
+	print("Enter Your Last Name: ", "Choose A Password: ", 10, ocpl, true, J);
+	get_user(last_name);
+
+	print("Enter Your Age: ", "Choose A Password: ", 12, ocpl, true, J);
+	show_cursor();
+	age = get_age();
+	hide_cursor();
+
+
+	strcpy(temp.first_name, first_name);
+	strcpy(temp.last_name, last_name);
+	temp.age = age;
+
+
 	temp.password = hash(password, username);
 
 	strcpy(temp.username, username);
@@ -1429,6 +1447,8 @@ bool do_wave(bool* ocpl, int wave_time, Node* head, int* f_score) {
 
 
 void easy_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update) {
+	End = false;
+
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	Node* head, * tail;
 	int wave = 1, wave_time, score = 0;
@@ -1443,17 +1463,21 @@ void easy_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int s
 			wave_time = WAVE_TIME_TO_WIN;
 
 		if (!do_wave(ocpl, wave_time, head, &score)) {
+			End = true;
 			finish(false, score, usr_inf, user_struct, ocpl, save_in_slot, update, 1, wave);
 		}
 		wave++;
 		if (wave_time == WAVE_TIME_TO_WIN) {
+			End = true;
 			finish(true, score, usr_inf, user_struct, ocpl, save_in_slot, update, 1, wave);
 		}
 		kill_linked_list(&head, &tail);
 	}
+
 }
 
 void medium_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update) {
+	End = false;
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	Node* head, * tail;
 	int wave = 1, wave_time, score = 0;
@@ -1468,17 +1492,21 @@ void medium_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int
 			wave_time = WAVE_TIME_TO_WIN;
 
 		if (!do_wave(ocpl, wave_time, head, &score)) {
+			End = true;
 			finish(false, score, usr_inf, user_struct, ocpl, save_in_slot, update, 2, wave);
 		}
 		wave++;
 		if (wave_time == WAVE_TIME_TO_WIN) {
+			End = true;
 			finish(true, score, usr_inf, user_struct, ocpl, save_in_slot, update, 2, wave);
 		}
 		kill_linked_list(&head, &tail);
 	}
+
 }
 
 void hard_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update) {
+	End = false;
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	Node* head, * tail;
 	int wave = 1, wave_time, score = 0;
@@ -1493,17 +1521,22 @@ void hard_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int s
 			wave_time = WAVE_TIME_TO_WIN;
 
 		if (!do_wave(ocpl, wave_time, head, &score)) {
+			End = true;
 			finish(false, score, usr_inf, user_struct, ocpl, save_in_slot, update, 3, wave);
 		}
 		wave++;
 		if (wave_time == WAVE_TIME_TO_WIN) {
+			End = true;
 			finish(true, score, usr_inf, user_struct, ocpl, save_in_slot, update, 3, wave);
 		}
 		kill_linked_list(&head, &tail);
 	}
+
+
 }
 
 void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update) {
+	End = false;
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	Node* head, * tail;
 	int wave = 1, wave_time, score = 0;
@@ -1519,17 +1552,21 @@ void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, 
 			wave_time = WAVE_TIME_TO_WIN;
 
 		if (!do_wave(ocpl, wave_time, head, &score)) {
+			End = true;
 			finish(false, score, usr_inf, user_struct, ocpl, save_in_slot, update, 3, wave);
 		}
 		wave++;
 		if (wave_time == WAVE_TIME_TO_WIN) {
+			End = true;
 			finish(true, score, usr_inf, user_struct, ocpl, save_in_slot, update, 3, wave);
 		}
 		kill_linked_list(&head, &tail);
 	}
+
 }
 
 void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update) {
+	End = false;
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	Node* head, * tail;
 	int wave = 1, wave_time, score = 0;
@@ -1544,14 +1581,17 @@ void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words,
 			wave_time = WAVE_TIME_TO_WIN;
 
 		if (!do_wave(ocpl, wave_time, head, &score)) {
+			End = true;
 			finish(false, score, usr_inf, user_struct, ocpl, save_in_slot, update, 3, wave);
 		}
 		wave++;
 		if (wave_time == WAVE_TIME_TO_WIN) {
+			End = true;
 			finish(true, score, usr_inf, user_struct, ocpl, save_in_slot, update, 3, wave);
 		}
 		kill_linked_list(&head, &tail);
 	}
+	
 }
 
 void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, int save_in_slot, bool update, int level_num, int wave) {
