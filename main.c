@@ -106,7 +106,6 @@ char* fill_hard(void);
 char* fill_left(void);
 char* fill_right(void);
 void newGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
-void color_print(char* str, char* padding, int y, bool* ocpl, bool a, int j, int sabz, int zard_begin, int zard_end);
 void color_print2(char* str, int y, int j);
 Node* create_Node();
 void make_linked_list(Node** head, Node** tail);
@@ -730,45 +729,6 @@ void color_print2(char* str, int y, int j) {
 	return;
 }
 
-
-void color_print(char* str, char* padding, int y, bool* ocpl, bool a, int j, int green, int yellow, int black) {//dead function
-	if (a)
-		gotoxy(l_padding(padding, j), y);
-	else
-		gotoxy(l_padding(str, j), y);
-
-
-	int len = strlen(str);
-	int k = 0;
-	if (green) {
-		setcolor(10);//green
-
-		for (int i = 0; i < green; i++, k++) {
-			printf("%c", str[k]);
-		}
-
-	}
-
-	if (yellow) {
-		setcolor(6);//orange
-
-		for (int i = 0; i < yellow; i++, k++) {
-			printf("%c", str[k]);
-		}
-
-	}
-
-	if (black) {
-
-		setcolor(0);//black
-
-		for (int i = 0; i < black; i++, k++) {
-			printf("%c", str[k]);
-		}
-	}
-
-	ocpl[y] = false;
-}
 
 void get_pass(char* password) {
 	show_cursor();
