@@ -15,10 +15,10 @@
 #define I 25//line number
 #define J 26//column number
 
-#define EASY_GAME_TIME 5// easy game wave time
+#define EASY_GAME_TIME 20// easy game wave time
 #define MEDIUM_GAME_TIME 15// medium game wave time
 #define HARD_GAME_TIME 10 // hard game wave time
-#define ONE_HAND_GAME_TIME 15 //one hand game wave time
+#define ONE_HAND_GAME_TIME 20 //one hand game wave time
 
 #define WAVE_TIME_TO_WIN 5000
 
@@ -95,6 +95,7 @@ int get_age();
 bool is_user_unique(FILE* usr_inf, char* username);
 bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, user* user_struct);
 int  main_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
+void loadGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
 void change_password(bool* ocpl, FILE* usr_inf, user* user_struct);
 void hide_cursor(void);
 void show_cursor(void);
@@ -120,6 +121,7 @@ void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, 
 void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update);
 bool do_wave(bool* ocpl, int wave_time, Node* head, int* f_score);
 void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, int save_in_slot, bool update, int level_num, int wave);
+
 
 
 
@@ -277,17 +279,6 @@ void fill_Linked_list(Node* head, int wave, FILE** words) {
 	case 1:
 		nrm = 9; lng = 0; hrd = 1;
 
-		/*for (int i = 0; i < 10; i++, ctr++) {
-			if (hrd && ctr >= 5 && (rand() % (10 - ctr)) == 0) {
-				fill_one_node(head, words[2]);
-				hrd--;
-			}
-			else {
-				fill_one_node(head, words[0]);
-			}
-
-		}*/
-
 		break;
 	case 2:
 		nrm = 8; lng = 1; hrd = 1;
@@ -312,11 +303,11 @@ void fill_Linked_list(Node* head, int wave, FILE** words) {
 		break;
 	}
 	for (int i = 0; i < 10; i++, ctr++) {
-		if ((hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
+		if ((ctr>3 && hrd && (rand() % (10 - ctr)) == 0) || (!nrm && hrd)) {// if the chance is right
 			fill_one_node(head, words[2]);
 			hrd--;
 		}
-		else if ((lng && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
+		else if ((ctr > 3 && lng && (rand() % (10 - ctr)) == 0) || (!nrm && lng)) {
 			fill_one_node(head, words[1]);
 			lng--;
 		}
@@ -1016,6 +1007,8 @@ void sign_up(bool* ocpl, FILE* usr_inf) {
 
 
 	temp.password = hash(password, username);
+	for (int i = 0; i < 3; i++)
+		temp.game[i].is_active = false;
 
 	strcpy(temp.username, username);
 	fseek(usr_inf, 0, SEEK_END);
@@ -1270,7 +1263,7 @@ int main_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 			break;
 
 		case 2:
-
+			loadGame_menu(ocpl, usr_inf, user_struct, words);
 			break;
 
 		case 3:
@@ -1288,14 +1281,102 @@ int main_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 
 
 			system("cls");
-			//fcloseall();
-			_fcloseall();
+			fcloseall();
+
 			exit(0);
 			break;
 		default:
 
 			break;
 		}
+	}
+}
+
+void loadGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
+	char ch;
+	int slot, level;
+	bool BREAK = false;
+	while (1) {
+
+
+		system("cls");
+		print_frame(18, 60);
+
+		for (int i = 0; i < 3 && user_struct->game[i].is_active; i++) {
+			gotoxy(3, 2 + (i * 4));
+			printf("%d- Level Difficulty: ", i+1);
+			switch (user_struct->game[i].level_difficulty) {
+			case 1:printf("Easy"); break;
+			case 2:printf("Medium"); break;
+			case 3:printf("Hard"); break;
+			case 4:printf("Left Hand Only"); break;
+			case 5:printf("Right Hand Only"); break;
+			default: break;
+			}
+			gotoxy(3, 3 + (i * 4));
+			printf("   XP: %d      High Score: %d", user_struct->game[i].xp, user_struct->game[i].high_score);
+			gotoxy(3, 4 + (i * 4));
+			printf("   Last Time Played on date: %d/%d/%d", user_struct->game[i].day, user_struct->game[i].month, user_struct->game[i].year);
+			gotoxy(3, 5 + (i * 4));
+			printf("   Last Time Played at Time: %d:%d:%d", user_struct->game[i].hour, user_struct->game[i].minute, user_struct->game[i].second);
+		}
+		gotoxy(3, 15);
+		printf("4- Back to Main Menu");
+
+		while (1) {
+			BREAK = false;
+			ch = getch();
+			ch -= '0';
+
+			switch (ch) {
+			case 1:
+				slot = 0;
+				level = user_struct->game[0].level_difficulty;
+				BREAK = true;
+				break;
+			case 2:
+				slot = 1;
+				level = user_struct->game[1].level_difficulty;
+				BREAK = true;
+				break;
+			case 3:
+				slot = 2;
+				level = user_struct->game[2].level_difficulty;
+				BREAK = true;
+				break;
+			case 4:
+				return;
+				break;
+			default:
+				break;
+			}
+
+			if (BREAK)
+				break;
+		}
+		system("cls");
+
+		switch (level)
+		{
+		case 1:
+			easy_game(ocpl, usr_inf, user_struct, words, slot, true);
+
+		case 2:
+			medium_game(ocpl, usr_inf, user_struct, words, slot, true);
+
+		case 3:
+			hard_game(ocpl, usr_inf, user_struct, words, slot, true);
+
+		case 4:
+			left_hand_game(ocpl, usr_inf, user_struct, words, slot, true);
+
+		case 5:
+			right_hand_game(ocpl, usr_inf, user_struct, words, slot, true);
+
+		default:
+			break;
+		}
+
 	}
 }
 
@@ -1407,6 +1488,8 @@ bool do_wave(bool* ocpl, int wave_time, Node* head, int* f_score) {
 
 
 void easy_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update) {
+	system("cls");
+
 	End = false;
 
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
@@ -1437,6 +1520,7 @@ void easy_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int s
 }
 
 void medium_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update) {
+	system("cls");
 	End = false;
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	Node* head, * tail;
@@ -1466,6 +1550,7 @@ void medium_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int
 }
 
 void hard_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update) {
+	system("cls");
 	End = false;
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	Node* head, * tail;
@@ -1496,6 +1581,7 @@ void hard_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int s
 }
 
 void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update) {
+	system("cls");
 	End = false;
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	Node* head, * tail;
@@ -1513,12 +1599,12 @@ void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, 
 
 		if (!do_wave(ocpl, wave_time, head, &score)) {
 			End = true;
-			finish(false, score, usr_inf, user_struct, ocpl, save_in_slot, update, 3, wave);
+			finish(false, score, usr_inf, user_struct, ocpl, save_in_slot, update, 4, wave);
 		}
 		wave++;
 		if (wave_time == WAVE_TIME_TO_WIN) {
 			End = true;
-			finish(true, score, usr_inf, user_struct, ocpl, save_in_slot, update, 3, wave);
+			finish(true, score, usr_inf, user_struct, ocpl, save_in_slot, update, 4, wave);
 		}
 		kill_linked_list(&head, &tail);
 	}
@@ -1526,6 +1612,7 @@ void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, 
 }
 
 void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update) {
+	system("cls");
 	End = false;
 	HANDLE thread_id = start_listening(my_callback_on_key_arrival);
 	Node* head, * tail;
@@ -1542,16 +1629,16 @@ void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words,
 
 		if (!do_wave(ocpl, wave_time, head, &score)) {
 			End = true;
-			finish(false, score, usr_inf, user_struct, ocpl, save_in_slot, update, 3, wave);
+			finish(false, score, usr_inf, user_struct, ocpl, save_in_slot, update, 5, wave);
 		}
 		wave++;
 		if (wave_time == WAVE_TIME_TO_WIN) {
 			End = true;
-			finish(true, score, usr_inf, user_struct, ocpl, save_in_slot, update, 3, wave);
+			finish(true, score, usr_inf, user_struct, ocpl, save_in_slot, update, 5, wave);
 		}
 		kill_linked_list(&head, &tail);
 	}
-	
+
 }
 
 void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, int save_in_slot, bool update, int level_num, int wave) {
@@ -1565,7 +1652,8 @@ void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, i
 	if (update) {
 
 		new_user_struct.game[save_in_slot].xp += score;
-		new_user_struct.game[save_in_slot].high_score += score;
+		if (new_user_struct.game[save_in_slot].high_score < score)
+			new_user_struct.game[save_in_slot].high_score = score;
 		new_user_struct.game[save_in_slot].second = tm.tm_sec;
 		new_user_struct.game[save_in_slot].minute = tm.tm_min;
 		new_user_struct.game[save_in_slot].hour = tm.tm_hour;
@@ -1574,18 +1662,66 @@ void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, i
 		new_user_struct.game[save_in_slot].year = tm.tm_year + 1900;
 	}
 	else {
-		new_user_struct.game[2] = new_user_struct.game[1];
-		new_user_struct.game[1] = new_user_struct.game[0];
+		if (new_user_struct.game[0].is_active == false) {//write to slot 0 if its not active
+			new_user_struct.game[0].xp = score;
+			new_user_struct.game[0].high_score = score;
+			new_user_struct.game[0].second = tm.tm_sec;
+			new_user_struct.game[0].minute = tm.tm_min;
+			new_user_struct.game[0].hour = tm.tm_hour;
+			new_user_struct.game[0].day = tm.tm_mday;
+			new_user_struct.game[0].month = tm.tm_mon;
+			new_user_struct.game[0].year = tm.tm_year + 1900;
+			new_user_struct.game[0].level_difficulty = level_num;
 
-		new_user_struct.game[0].xp = score;
-		new_user_struct.game[0].high_score = score;
-		new_user_struct.game[0].second = tm.tm_sec;
-		new_user_struct.game[0].minute = tm.tm_min;
-		new_user_struct.game[0].hour = tm.tm_hour;
-		new_user_struct.game[0].day = tm.tm_mday;
-		new_user_struct.game[0].month = tm.tm_mon;
-		new_user_struct.game[0].year = tm.tm_year + 1900;
-		new_user_struct.game[0].level_difficulty = level_num;
+			new_user_struct.game[0].is_active = true;
+		}
+		else if (new_user_struct.game[1].is_active == false) {//write to slot 1 if its not active
+			new_user_struct.game[1] = new_user_struct.game[0];
+
+			new_user_struct.game[0].xp = score;
+			new_user_struct.game[0].high_score = score;
+			new_user_struct.game[0].second = tm.tm_sec;
+			new_user_struct.game[0].minute = tm.tm_min;
+			new_user_struct.game[0].hour = tm.tm_hour;
+			new_user_struct.game[0].day = tm.tm_mday;
+			new_user_struct.game[0].month = tm.tm_mon;
+			new_user_struct.game[0].year = tm.tm_year + 1900;
+			new_user_struct.game[0].level_difficulty = level_num;
+
+			new_user_struct.game[1].is_active = true;
+
+		}
+		else if (new_user_struct.game[2].is_active == false) {//write to slot 2 if its not active
+			new_user_struct.game[2] = new_user_struct.game[1];
+			new_user_struct.game[1] = new_user_struct.game[0];
+
+			new_user_struct.game[0].xp = score;
+			new_user_struct.game[0].high_score = score;
+			new_user_struct.game[0].second = tm.tm_sec;
+			new_user_struct.game[0].minute = tm.tm_min;
+			new_user_struct.game[0].hour = tm.tm_hour;
+			new_user_struct.game[0].day = tm.tm_mday;
+			new_user_struct.game[0].month = tm.tm_mon;
+			new_user_struct.game[0].year = tm.tm_year + 1900;
+			new_user_struct.game[0].level_difficulty = level_num;
+
+			new_user_struct.game[2].is_active = true;
+		}
+		else {//////////////////////////////////////////////////over writes slot 2 if anyway
+			new_user_struct.game[2] = new_user_struct.game[1];
+			new_user_struct.game[1] = new_user_struct.game[0];
+
+			new_user_struct.game[0].xp = score;
+			new_user_struct.game[0].high_score = score;
+			new_user_struct.game[0].second = tm.tm_sec;
+			new_user_struct.game[0].minute = tm.tm_min;
+			new_user_struct.game[0].hour = tm.tm_hour;
+			new_user_struct.game[0].day = tm.tm_mday;
+			new_user_struct.game[0].month = tm.tm_mon;
+			new_user_struct.game[0].year = tm.tm_year + 1900;
+			new_user_struct.game[0].level_difficulty = level_num;
+		}
+
 	}
 	fwrite(&new_user_struct, sizeof(user), 1, usr_inf);
 
@@ -1601,35 +1737,35 @@ void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, i
 
 	}
 	else {
-		print_frame(10, 30);
+		print_frame(10, 40);
 
-		print("GAME OVER", "", 2, ocpl, false, 30);
+		print("GAME OVER", "", 2, ocpl, false, 40);
 
-		print("", "score: 58", 4, ocpl, true, 30); printf("Score: %d", score);
+		print("", "score: 58", 4, ocpl, true, 40); printf("Score: %d", score);
 
-		print("", "Wave: 58", 5, ocpl, true, 30); printf("Wave: %d", wave);
+		print("", "Wave: 58", 5, ocpl, true, 40); printf("Wave: %d", wave);
 
 		switch (level_num)
 		{
 		case 1:
-			print("Level Difficulty: Easy", "", 6, ocpl, false, 30);
+			print("Level Difficulty: Easy", "", 6, ocpl, false, 40);
 			break;
 		case 2:
-			print("Level Difficulty: Medium", "", 6, ocpl, false, 30);
+			print("Level Difficulty: Medium", "", 6, ocpl, false, 40);
 			break;
 		case 3:
-			print("Level Difficulty: Hard", "", 6, ocpl, false, 30);
+			print("Level Difficulty: Hard", "", 6, ocpl, false, 40);
 			break;
 		case 4:
-			print("Level Difficulty: Left Hand Only", "", 6, ocpl, false, 30);
+			print("Level Difficulty: Left Hand Only", "", 6, ocpl, false, 40);
 			break;
 		case 5:
-			print("Level Difficulty: Right Hand Only", "", 6, ocpl, false, 30);
+			print("Level Difficulty: Right Hand Only", "", 6, ocpl, false, 40);
 			break;
 		default:
 			break;
 		}
-		countdown(15, 8, 5);
+		countdown(20, 8, 5);
 	}
 	gotoxy(0, 0);
 	system("cls");
@@ -1637,155 +1773,3 @@ void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, i
 	exit(0);
 }
 
-
-/*
-this is for time and date
-time_t t;
-	t = time(NULL);
-	struct tm tm;
-	tm = *localtime(&t);
-	printf("Current Time: %d:%d:%d\n", tm.tm_hour, tm.tm_min, tm.tm_sec);
-	printf("Current Date: %d/%d/%d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
-*/
-
-
-/*
-		if (line > 0 && ind <= 1) {
-			if (ind == 1) {
-				index_line = line;
-				strcpy(index, tmp_node->str);
-				color_print2(index, index_line, J);
-				global_node = tmp_node;
-			}
-			else {
-				print(tmp_node->str, "", line, ocpl, false, J);
-
-			}
-		}
-
-		tmp_node = tmp_node->next;
-		if ((line - 1) > 0 && ind <= 2) {
-			if (ind == 2) {
-				index_line = line - 1;
-				strcpy(index, tmp_node->str);
-				color_print2(index, index_line, J);
-				global_node = tmp_node;
-			}
-			else {
-				print(tmp_node->str, "", line - 1, ocpl, false, J);
-
-			}
-		}
-
-		tmp_node = tmp_node->next;
-		if ((line - 2) > 0 && ind <= 3) {
-			if (ind == 3) {
-				index_line = line - 2;
-				strcpy(index, tmp_node->str);
-				color_print2(index, index_line, J);
-				global_node = tmp_node;
-			}
-			else {
-				print(tmp_node->str, "", line - 2, ocpl, false, J);
-
-			}
-		}
-
-		tmp_node = tmp_node->next;
-		if ((line - 3) > 0 && ind <= 4) {
-			if (ind == 4) {
-				index_line = line - 3;
-				strcpy(index, tmp_node->str);
-				color_print2(index, index_line, J);
-				global_node = tmp_node;
-			}
-			else {
-				print(tmp_node->str, "", line - 3, ocpl, false, J);
-
-			}
-		}
-
-		tmp_node = tmp_node->next;
-		if ((line - 4) > 0 && ind <= 5) {
-			if (ind == 5) {
-				index_line = line - 4;
-				strcpy(index, tmp_node->str);
-				color_print2(index, index_line, J);
-				global_node = tmp_node;
-			}
-			else {
-				print(tmp_node->str, "", line - 4, ocpl, false, J);
-
-			}
-		}
-
-		tmp_node = tmp_node->next;
-		if ((line - 5) > 0 && ind <= 6) {
-			if (ind == 6) {
-				index_line = line - 5;
-				strcpy(index, tmp_node->str);
-				color_print2(index, index_line, J);
-				global_node = tmp_node;
-			}
-			else {
-				print(tmp_node->str, "", line - 5, ocpl, false, J);
-
-			}
-		}
-
-		tmp_node = tmp_node->next;
-		if ((line - 6) > 0 && ind <= 7) {
-			if (ind == 7) {
-				index_line = line - 6;
-				strcpy(index, tmp_node->str);
-				color_print2(index, index_line, J);
-				global_node = tmp_node;
-			}
-			else {
-				print(tmp_node->str, "", line - 6, ocpl, false, J);
-
-			}
-		}
-
-		tmp_node = tmp_node->next;
-		if ((line - 7) > 0 && ind <= 8) {
-			if (ind == 8) {
-				index_line = line - 7;
-				strcpy(index, tmp_node->str);
-				color_print2(index, index_line, J);
-				global_node = tmp_node;
-			}
-			else {
-				print(tmp_node->str, "", line - 7, ocpl, false, J);
-
-			}
-		}
-
-		tmp_node = tmp_node->next;
-		if ((line - 8) > 0 && ind <= 9) {
-			if (ind == 9) {
-				index_line = line - 8;
-				strcpy(index, tmp_node->str);
-				color_print2(index, index_line, J);
-				global_node = tmp_node;
-			}
-			else {
-				print(tmp_node->str, "", line - 8, ocpl, false, J);
-
-			}
-		}
-
-		tmp_node = tmp_node->next;
-		if ((line - 9) > 0 && ind <= 10) {
-			if (ind == 10) {
-				index_line = line - 9;
-				strcpy(index, tmp_node->str);
-				color_print2(index, index_line, J);
-				global_node = tmp_node;
-			}
-			else {
-				print(tmp_node->str, "", line - 9, ocpl, false, J);
-
-			}
-		}
-		*/
