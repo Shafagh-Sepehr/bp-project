@@ -47,7 +47,7 @@ typedef struct user {
 	char username[20];
 	unsigned long password;
 	gameinfo game[3];
-	
+
 }user;
 
 typedef struct Node {
@@ -116,7 +116,7 @@ void hard_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int s
 void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update);
 void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update);
 bool do_wave(bool* ocpl, int wave_time, Node* head, int* f_score);
-void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, int save_in_slot, bool update, int level_num,int wave);
+void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, int save_in_slot, bool update, int level_num, int wave);
 
 
 
@@ -261,7 +261,7 @@ void fill_one_node(Node* head, FILE* words) {
 }
 
 void fill_linked_list_one_hand(Node* head, FILE* words) {
-	
+
 	for (int i = 0; i < 10; i++)
 		fill_one_node(head, words);
 
@@ -1241,21 +1241,21 @@ void newGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 		ch -= '0';
 		switch (ch) {
 		case 1:
-			easy_game(ocpl, usr_inf, user_struct, words, 2,false);
+			easy_game(ocpl, usr_inf, user_struct, words, 2, false);
 			break;
 
 		case 2:
-			medium_game(ocpl, usr_inf, user_struct, words, 2,false);
+			medium_game(ocpl, usr_inf, user_struct, words, 2, false);
 			break;
 
 		case 3:
-			hard_game(ocpl, usr_inf, user_struct, words, 2,false);
+			hard_game(ocpl, usr_inf, user_struct, words, 2, false);
 			break;
 		case 4:
-			left_hand_game(ocpl, usr_inf, user_struct, words, 2,false);
+			left_hand_game(ocpl, usr_inf, user_struct, words, 2, false);
 			break;
 		case 5:
-			right_hand_game(ocpl, usr_inf, user_struct, words, 2,false);
+			right_hand_game(ocpl, usr_inf, user_struct, words, 2, false);
 			break;
 		case 6:
 			return;
@@ -1343,7 +1343,7 @@ void reset_color_array() {
 		color[i] = 2;
 }
 
-void my_callback_on_key_arrival(char c) {//when a word is removed, you need to wait for words to move a line down to be able to enter the next word
+void my_callback_on_key_arrival(char c) {
 	if (End)
 		return;
 
@@ -1386,10 +1386,10 @@ bool do_wave(bool* ocpl, int wave_time, Node* head, int* f_score) {
 	ind = 1;
 	while (1) {
 		tmp_node = head;
-		
+
 		for (int i = 0; i < 10; i++) {
-			if ((line - i) > 0 && ind <= i+1) {
-				if (ind == i+1) {
+			if ((line - i) > 0 && ind <= i + 1) {
+				if (ind == i + 1) {
 					index_line = line - i;
 					strcpy(index, tmp_node->str);
 					color_print2(index, index_line, J);
@@ -1398,10 +1398,10 @@ bool do_wave(bool* ocpl, int wave_time, Node* head, int* f_score) {
 				else {
 					print(tmp_node->str, "", line - i, ocpl, false, J);
 
-				}	
+				}
 			}
-			if(i<9)
-			tmp_node = tmp_node->next;
+			if (i < 9)
+				tmp_node = tmp_node->next;
 		}
 
 		_sleep(wave_time / 10);
@@ -1554,16 +1554,16 @@ void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words,
 	}
 }
 
-void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, int save_in_slot, bool update,int level_num,int wave) {
-	user new_user_struct = *user_struct,temp;
-	
+void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, int save_in_slot, bool update, int level_num, int wave) {
+	user new_user_struct = *user_struct, temp;
+
 	time_t t;
 	t = time(NULL);
 	struct tm tm;
 	tm = *localtime(&t);
 
 	if (update) {
-		
+
 		new_user_struct.game[save_in_slot].xp += score;
 		new_user_struct.game[save_in_slot].high_score += score;
 		new_user_struct.game[save_in_slot].second = tm.tm_sec;
@@ -1590,11 +1590,11 @@ void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, i
 	fwrite(&new_user_struct, sizeof(user), 1, usr_inf);
 
 	system("cls");
-	
+
 	if (win) {
 		print_frame(8, 45);
 
-		print("You Have Achieved Great Skills in Typing!!", "",2, ocpl, false, 45);
+		print("You Have Achieved Great Skills in Typing!!", "", 2, ocpl, false, 45);
 		print("", "score: 58", 4, ocpl, true, 45); printf("Score: %d", score);
 
 		countdown(22, 6, 5);
