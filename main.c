@@ -421,7 +421,7 @@ char* fill_left(void) {
 	int r;
 	for (int i = 0; i < word_size; i++) {
 
-		r = rand() % 48;
+		r = rand() % 49;
 
 		switch (r)
 		{
@@ -477,6 +477,8 @@ char* fill_left(void) {
 
 
 		default:
+			i--;
+			continue;
 			break;
 		}
 
@@ -504,8 +506,8 @@ char* fill_right(void) {
 
 	int r;
 	for (int i = 0; i < word_size; i++) {
-
-		r = rand() % 48;
+		a:
+		r = rand() % 51;
 
 		switch (r)
 		{
@@ -551,7 +553,7 @@ char* fill_right(void) {
 		case 40:	r = '_'; break;
 		case 41:	r = '['; break;
 		case 42:	r = '{'; break;
-		case 43:	r = "'"; break;
+		case 43:	r = '\''; break;
 		case 44:	r = '"'; break;
 		case 45:	r = '+'; break;
 		case 46:	r = '='; break;
@@ -562,6 +564,8 @@ char* fill_right(void) {
 
 
 		default:
+			i--;
+			continue;
 			break;
 		}
 
@@ -595,7 +599,7 @@ void fill(FILE** file) {
 	}
 	fseek(file[3], 0, SEEK_SET);
 
-	for (int i = 0; i < 10000; i++) {
+	for (int i = 0; i < 100; i++) {
 		fprintf(file[4], "%s\n", fill_right());
 	}
 	fseek(file[4], 0, SEEK_SET);
