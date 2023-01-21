@@ -62,8 +62,8 @@ char index[25];
 bool is_solved = false;
 int index_line, color[25], score;//color[x]=  0->green 1->yellow 2->black
 bool* ocpl_copy;
-Node* global_node;
-bool End = true;
+Node* global_node, * address_saver_for_boost = NULL;
+bool End = true, Boost = false;
 
 /*Example codes.
 setcolor(1);
@@ -451,7 +451,7 @@ char* fill_left(void) {
 	for (int i = 0; i < word_size; i++) {
 
 		r = rand() % 50;//50 is \0
-		
+
 		word[i] = left[r];
 
 	}
@@ -481,7 +481,7 @@ char* fill_right(void) {
 	for (int i = 0; i < word_size; i++) {
 	a:
 		r = rand() % 49;//49 is \0
-		
+
 
 		word[i] = right[r];
 
@@ -1221,7 +1221,7 @@ void loadGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 		print_frame(20, 44);
 
 		for (int i = 0; i < 3 && user_struct->game[i].is_active; i++) {
-			gotoxy(3, 2 + (i * 4)+i);
+			gotoxy(3, 2 + (i * 4) + i);
 			printf("%d- Level Difficulty: ", i + 1);
 			switch (user_struct->game[i].level_difficulty) {
 			case 1:printf("Easy"); break;
@@ -1231,11 +1231,11 @@ void loadGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 			case 5:printf("Right Hand Only"); break;
 			default: break;
 			}
-			gotoxy(3, 3 + (i * 4)+i);
+			gotoxy(3, 3 + (i * 4) + i);
 			printf("   XP: %d      High Score: %d", user_struct->game[i].xp, user_struct->game[i].high_score);
-			gotoxy(3, 4 + (i * 4)+i);
+			gotoxy(3, 4 + (i * 4) + i);
 			printf("   Last Time Played on date: %d/%d/%d", user_struct->game[i].day, user_struct->game[i].month, user_struct->game[i].year);
-			gotoxy(3, 5 + (i * 4)+i);
+			gotoxy(3, 5 + (i * 4) + i);
 			printf("   Last Time Played at Time: %d:%d:%d", user_struct->game[i].hour, user_struct->game[i].minute, user_struct->game[i].second);
 		}
 		gotoxy(3, 17);
@@ -1334,12 +1334,18 @@ void my_callback_on_key_arrival(char c) {
 
 		if (c == '!' || c == '@' || c == '#' || c == '$' || c == '%' || c == '^' || c == '&' || c == '*' || c == '(' || c == ')' || c == '_' || c == '+' || c == '[' || c == ']' || c == '{' || c == '}' || c == '\'' || c == '"' || c == '?' || c == '/' || c == '`' || c == '~' || c == '<' || c == '>' || c == ',' || c == '.' || c == '-' || c == '=' || c == ':' || c == ';')
 			score++;
+
+		if (Boost)
+			score++;
 	}
 	else if (c == '\b') {
 		if (a && color[a - 1] == 0) {
 			score--;
 			c = index[a - 1];
 			if (c == '!' || c == '@' || c == '#' || c == '$' || c == '%' || c == '^' || c == '&' || c == '*' || c == '(' || c == ')' || c == '_' || c == '+' || c == '[' || c == ']' || c == '{' || c == '}' || c == '\'' || c == '"' || c == '?' || c == '/' || c == '`' || c == '~' || c == '<' || c == '>' || c == ',' || c == '.' || c == '-' || c == '=')
+				score--;
+
+			if (Boost)
 				score--;
 		}
 
@@ -1353,6 +1359,8 @@ void my_callback_on_key_arrival(char c) {
 	}
 	color_print2(index, index_line, J);
 	if (is_word_solved()) {
+		Boost = false;
+
 		print("                      ", "", index_line, ocpl_copy, false, J);
 		is_solved = true;
 
@@ -1360,6 +1368,13 @@ void my_callback_on_key_arrival(char c) {
 
 		strcpy(index, global_node->next->str);
 		index_line--;
+
+
+		if (address_saver_for_boost != NULL)
+			if (strcmp(address_saver_for_boost->str, index) == 0)
+				Boost = true;
+		
+
 
 		print("                      ", "", index_line, ocpl_copy, false, J);
 		color_print2(index, index_line, J);
@@ -1403,13 +1418,16 @@ bool do_wave(bool* ocpl, int wave_time, int* f_score, FILE** words, int level_nu
 					for (int k = 0; address_saver[k] != NULL; k++)
 						if (address_saver[k] == tmp_node) {
 							does_adrs_match = true;
+							address_saver_for_boost = tmp_node;
 							break;
+							
 						}
-					if (((line - i - 1 == 0) && (word_ctr2 > 8) && (rand() % 6 == 0)) || does_adrs_match) {// if a node is supposed to be hidden we save																						its address so the next time we know we have																						to hide it// the line-i-1 only lets the words																						on the first line to be hidden so there wont																						be a word suddenly getting hidden
+					if (((line - i - 1 == 0) && (word_ctr2 > 3) && (rand() % 5 == 0)) || does_adrs_match) {// if a node is supposed to be hidden we save its address so the next time we know we haveto hide it// the line-i-1 only lets the words on the first line to be hidden so there wont be a word suddenly getting hidden
 						print("*********************", "", line - i, ocpl, false, J);
 						does_adrs_match = false;
 						address_saver[adrs_svr_ind] = tmp_node;
 						adrs_svr_ind++;
+
 					}
 					else
 						print(tmp_node->str, "", line - i, ocpl, false, J);
@@ -1601,16 +1619,16 @@ void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, i
 	tm = *localtime(&t);
 
 	if (update) {
-		if(save_in_slot==0){
-		new_user_struct.game[save_in_slot].xp += score;
-		if (new_user_struct.game[save_in_slot].high_score < score)
-			new_user_struct.game[save_in_slot].high_score = score;
-		new_user_struct.game[save_in_slot].second = tm.tm_sec;
-		new_user_struct.game[save_in_slot].minute = tm.tm_min;
-		new_user_struct.game[save_in_slot].hour = tm.tm_hour;
-		new_user_struct.game[save_in_slot].day = tm.tm_mday;
-		new_user_struct.game[save_in_slot].month = tm.tm_mon;
-		new_user_struct.game[save_in_slot].year = tm.tm_year + 1900;
+		if (save_in_slot == 0) {
+			new_user_struct.game[save_in_slot].xp += score;
+			if (new_user_struct.game[save_in_slot].high_score < score)
+				new_user_struct.game[save_in_slot].high_score = score;
+			new_user_struct.game[save_in_slot].second = tm.tm_sec;
+			new_user_struct.game[save_in_slot].minute = tm.tm_min;
+			new_user_struct.game[save_in_slot].hour = tm.tm_hour;
+			new_user_struct.game[save_in_slot].day = tm.tm_mday;
+			new_user_struct.game[save_in_slot].month = tm.tm_mon;
+			new_user_struct.game[save_in_slot].year = tm.tm_year + 1900;
 		}
 		else if (save_in_slot == 1) {
 			temp = new_user_struct.game[0];
@@ -1668,7 +1686,7 @@ void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, i
 
 			new_user_struct.game[0].is_active = true;
 		}
-		else if (new_user_struct.game[1].is_active == false) {//write to slot 1 if its not active
+		else if (new_user_struct.game[1].is_active == false) {//write to slot 1
 			new_user_struct.game[1] = new_user_struct.game[0];
 
 			new_user_struct.game[0].xp = score;
@@ -1700,7 +1718,7 @@ void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, i
 
 			new_user_struct.game[2].is_active = true;
 		}
-		else {//////////////////////////////////////////////////over writes slot 2 if anyway
+		else {//////////////////////////////////////////////////rites to slot 0 but first 0->1 1->2 2->X
 			new_user_struct.game[2] = new_user_struct.game[1];
 			new_user_struct.game[1] = new_user_struct.game[0];
 
