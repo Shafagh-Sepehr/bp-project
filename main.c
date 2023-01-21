@@ -1218,10 +1218,10 @@ void loadGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 
 
 		system("cls");
-		print_frame(18, 60);
+		print_frame(20, 44);
 
 		for (int i = 0; i < 3 && user_struct->game[i].is_active; i++) {
-			gotoxy(3, 2 + (i * 4));
+			gotoxy(3, 2 + (i * 4)+i);
 			printf("%d- Level Difficulty: ", i + 1);
 			switch (user_struct->game[i].level_difficulty) {
 			case 1:printf("Easy"); break;
@@ -1231,14 +1231,14 @@ void loadGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 			case 5:printf("Right Hand Only"); break;
 			default: break;
 			}
-			gotoxy(3, 3 + (i * 4));
+			gotoxy(3, 3 + (i * 4)+i);
 			printf("   XP: %d      High Score: %d", user_struct->game[i].xp, user_struct->game[i].high_score);
-			gotoxy(3, 4 + (i * 4));
+			gotoxy(3, 4 + (i * 4)+i);
 			printf("   Last Time Played on date: %d/%d/%d", user_struct->game[i].day, user_struct->game[i].month, user_struct->game[i].year);
-			gotoxy(3, 5 + (i * 4));
+			gotoxy(3, 5 + (i * 4)+i);
 			printf("   Last Time Played at Time: %d:%d:%d", user_struct->game[i].hour, user_struct->game[i].minute, user_struct->game[i].second);
 		}
-		gotoxy(3, 15);
+		gotoxy(3, 17);
 		printf("4- Back to Main Menu");
 
 		while (1) {
@@ -1541,9 +1541,6 @@ void hard_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int s
 			finish(true, score, usr_inf, user_struct, ocpl, save_in_slot, update, 3, wave);
 		}
 	}
-
-
-
 }
 
 void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update) {
@@ -1568,9 +1565,6 @@ void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, 
 			finish(true, score, usr_inf, user_struct, ocpl, save_in_slot, update, 4, wave);
 		}
 	}
-
-
-
 }
 
 void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update) {
@@ -1595,12 +1589,11 @@ void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words,
 			finish(true, score, usr_inf, user_struct, ocpl, save_in_slot, update, 5, wave);
 		}
 	}
-
-
 }
 
 void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, int save_in_slot, bool update, int level_num, int wave) {
-	user new_user_struct = *user_struct, temp;
+	user new_user_struct = *user_struct;
+	gameinfo temp;
 
 	time_t t;
 	t = time(NULL);
@@ -1608,7 +1601,7 @@ void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, i
 	tm = *localtime(&t);
 
 	if (update) {
-
+		if(save_in_slot==0){
 		new_user_struct.game[save_in_slot].xp += score;
 		if (new_user_struct.game[save_in_slot].high_score < score)
 			new_user_struct.game[save_in_slot].high_score = score;
@@ -1618,6 +1611,48 @@ void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, i
 		new_user_struct.game[save_in_slot].day = tm.tm_mday;
 		new_user_struct.game[save_in_slot].month = tm.tm_mon;
 		new_user_struct.game[save_in_slot].year = tm.tm_year + 1900;
+		}
+		else if (save_in_slot == 1) {
+			temp = new_user_struct.game[0];
+
+			new_user_struct.game[0].xp += score;
+			if (new_user_struct.game[1].high_score < score)
+				new_user_struct.game[0].high_score = score;
+			else
+				new_user_struct.game[0].high_score = new_user_struct.game[1].high_score;
+			new_user_struct.game[0].second = tm.tm_sec;
+			new_user_struct.game[0].minute = tm.tm_min;
+			new_user_struct.game[0].hour = tm.tm_hour;
+			new_user_struct.game[0].day = tm.tm_mday;
+			new_user_struct.game[0].month = tm.tm_mon;
+			new_user_struct.game[0].year = tm.tm_year + 1900;
+			new_user_struct.game[0].level_difficulty = new_user_struct.game[1].level_difficulty;
+
+			new_user_struct.game[1] = temp;
+		}
+		else if (save_in_slot == 2) {
+			temp = new_user_struct.game[0];
+
+			new_user_struct.game[0].xp += score;
+			if (new_user_struct.game[2].high_score < score)
+				new_user_struct.game[0].high_score = score;
+			else
+				new_user_struct.game[0].high_score = new_user_struct.game[2].high_score;
+			new_user_struct.game[0].second = tm.tm_sec;
+			new_user_struct.game[0].minute = tm.tm_min;
+			new_user_struct.game[0].hour = tm.tm_hour;
+			new_user_struct.game[0].day = tm.tm_mday;
+			new_user_struct.game[0].month = tm.tm_mon;
+			new_user_struct.game[0].year = tm.tm_year + 1900;
+			new_user_struct.game[0].level_difficulty = new_user_struct.game[2].level_difficulty;
+
+			new_user_struct.game[2] = temp;
+
+
+
+
+
+		}
 	}
 	else {
 		if (new_user_struct.game[0].is_active == false) {//write to slot 0 if its not active
