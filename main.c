@@ -1490,9 +1490,9 @@ bool do_wave(bool* ocpl, int wave_time, int* f_score, FILE** words, int level_nu
 	if (level_num < 4)
 		fill_Linked_list(head, *wave, words);
 	else if (level_num == 4)
-		fill_linked_list_one_hand(head, words[4]);
+		fill_linked_list_one_hand(head, words[3]);
 	else if (level_num == 5)
-		fill_linked_list_one_hand(head, words[5]);
+		fill_linked_list_one_hand(head, words[4]);
 
 
 
@@ -1543,9 +1543,9 @@ bool do_wave(bool* ocpl, int wave_time, int* f_score, FILE** words, int level_nu
 			if (level_num < 4)
 				fill_Linked_list(head, *wave, words);
 			else if (level_num == 4)
-				fill_linked_list_one_hand(head, words[4]);
+				fill_linked_list_one_hand(head, words[3]);
 			else if (level_num == 5)
-				fill_linked_list_one_hand(head, words[5]);
+				fill_linked_list_one_hand(head, words[4]);
 
 			word_ctr -= 10;
 		}
