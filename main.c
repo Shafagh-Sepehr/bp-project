@@ -445,70 +445,14 @@ char* fill_left(void) {
 	}
 
 	int r;
+	char left[] = "N1!qQaAzZwWsSxXeE2@3#dDcC$4rRfFvV%5tTgGbB6^yYhHn~`";
+	char a = left[49], b = left[50];
+
 	for (int i = 0; i < word_size; i++) {
 
-		r = rand() % 49;
-
-		switch (r)
-		{
-		case 0:		r = 'N'; break;
-		case 1:		r = '1'; break;
-		case 2:		r = '!'; break;
-		case 3:		r = 'q'; break;
-		case 4:		r = 'Q'; break;
-		case 5:		r = 'a'; break;
-		case 6:		r = 'A'; break;
-		case 7:		r = 'z'; break;
-		case 8:		r = 'Z'; break;
-		case 9:		r = 'w'; break;
-		case 10:	r = 'W'; break;
-		case 11:	r = 's'; break;
-		case 12:	r = 'S'; break;
-		case 13:	r = 'x'; break;
-		case 14:	r = 'X'; break;
-		case 15:	r = 'e'; break;
-		case 16:	r = 'E'; break;
-		case 17:	r = '2'; break;
-		case 18:	r = '@'; break;
-		case 19:	r = '3'; break;
-		case 20:	r = '#'; break;
-		case 21:	r = 'd'; break;
-		case 22:	r = 'D'; break;
-		case 23:	r = 'c'; break;
-		case 24:	r = 'C'; break;
-		case 25:	r = '4'; break;
-		case 26:	r = '$'; break;
-		case 27:	r = 'r'; break;
-		case 28:	r = 'R'; break;
-		case 29:	r = 'f'; break;
-		case 30:	r = 'F'; break;
-		case 31:	r = 'v'; break;
-		case 32:	r = 'V'; break;
-		case 33:	r = '%'; break;
-		case 34:	r = '5'; break;
-		case 35:	r = 't'; break;
-		case 36:	r = 'T'; break;
-		case 37:	r = 'g'; break;
-		case 38:	r = 'G'; break;
-		case 39:	r = 'b'; break;
-		case 40:	r = 'B'; break;
-		case 41:	r = '6'; break;
-		case 42:	r = '^'; break;
-		case 43:	r = 'y'; break;
-		case 44:	r = 'Y'; break;
-		case 45:	r = 'h'; break;
-		case 46:	r = 'H'; break;
-		case 47:	r = 'n'; break;
-		case 48:	r = '~'; break;
-
-
-		default:
-			i--;
-			continue;
-			break;
-		}
-
-		word[i] = r;
+		r = rand() % 50;//50 is \0
+		
+		word[i] = left[r];
 
 	}
 	word[word_size] = '\0';
@@ -531,71 +475,15 @@ char* fill_right(void) {
 	}
 
 	int r;
+	char right[] = "yYhHnN7&uUjJmM8*iIkK,<9(oOlL.>0)pP;:/?-_[{\'\"+=]}\\";
+
+
 	for (int i = 0; i < word_size; i++) {
 	a:
-		r = rand() % 51;
+		r = rand() % 49;//49 is \0
+		
 
-		switch (r)
-		{
-		case 1:		r = 'y'; break;
-		case 2:		r = 'Y'; break;
-		case 3:		r = 'h'; break;
-		case 4:		r = 'H'; break;
-		case 5:		r = 'n'; break;
-		case 6:		r = 'N'; break;
-		case 7:		r = '7'; break;
-		case 8:		r = '&'; break;
-		case 9:		r = 'u'; break;
-		case 10:	r = 'U'; break;
-		case 11:	r = 'j'; break;
-		case 12:	r = 'J'; break;
-		case 13:	r = 'm'; break;
-		case 14:	r = 'M'; break;
-		case 15:	r = '8'; break;
-		case 16:	r = '*'; break;
-		case 17:	r = 'i'; break;
-		case 18:	r = 'I'; break;
-		case 19:	r = 'k'; break;
-		case 20:	r = 'K'; break;
-		case 21:	r = ','; break;
-		case 22:	r = '<'; break;
-		case 23:	r = '9'; break;
-		case 24:	r = '('; break;
-		case 25:	r = 'o'; break;
-		case 26:	r = 'O'; break;
-		case 27:	r = 'l'; break;
-		case 28:	r = 'L'; break;
-		case 29:	r = '.'; break;
-		case 30:	r = '>'; break;
-		case 31:	r = '0'; break;
-		case 32:	r = ')'; break;
-		case 33:	r = 'p'; break;
-		case 34:	r = 'P'; break;
-		case 35:	r = ';'; break;
-		case 36:	r = ':'; break;
-		case 37:	r = '/'; break;
-		case 38:	r = '?'; break;
-		case 39:	r = '-'; break;
-		case 40:	r = '_'; break;
-		case 41:	r = '['; break;
-		case 42:	r = '{'; break;
-		case 43:	r = '\''; break;
-		case 44:	r = '"'; break;
-		case 45:	r = '+'; break;
-		case 46:	r = '='; break;
-		case 47:	r = ']'; break;
-		case 48:	r = '}'; break;
-		case 49:	r = '\\'; break;
-		case 50:	r = '|'; break;
-
-
-		default:
-			i--;
-			continue;
-			break;
-		}
-
-		word[i] = r;
+		word[i] = right[r];
 
 	}
 	word[word_size] = '\0';
