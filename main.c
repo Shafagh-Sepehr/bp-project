@@ -1410,7 +1410,7 @@ void loadGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words) {
 	}
 }
 
-int char_index() {
+int char_index() {//returns index of the letter we're going to type
 	int len = strlen(index);
 	for (int i = 0; i < len; i++) {
 		if (color[i] == 2)
@@ -1418,7 +1418,7 @@ int char_index() {
 	}
 }
 
-bool is_word_solved() {
+bool is_word_solved() {//checks if all character  are green or 0 and returns true if so
 	int len = strlen(index);
 	for (int i = 0; i < len; i++) {
 		if (color[i] != 0)
@@ -1427,7 +1427,7 @@ bool is_word_solved() {
 	return true;
 }
 
-void reset_color_array() {
+void reset_color_array() {//sets all values to 2
 	for (int i = 0; i < 25; i++)
 		color[i] = 2;
 }
@@ -1443,11 +1443,20 @@ void my_callback_on_key_arrival(char c) {
 	if (c == index[a]) {
 		color[a] = 0;
 		score++;
+		
+		if (c == '!' || c == '@' || c == '#' || c == '$' || c == '%' || c == '^' || c == '&' || c == '*' || c == '(' || c == ')' || c == '_' || c == '+' || c == '[' || c == ']' || c == '{' || c == '}' || c == '\'' || c == '"' || c == '?' || c == '/' || c == '`' || c == '~' || c == '<' || c == '>' || c == ',' || c == '.' || c == '-' || c == '=')
+			score++;
 	}
 	else if (c == '\b') {
-		if (a && color[a - 1] == 0)
+		if (a && color[a - 1] == 0) {
 			score--;
+			c = index[a - 1];
+			if (c == '!' || c == '@' || c == '#' || c == '$' || c == '%' || c == '^' || c == '&' || c == '*' || c == '(' || c == ')' || c == '_' || c == '+' || c == '[' || c == ']' || c == '{' || c == '}' || c == '\'' || c == '"' || c == '?' || c == '/' || c == '`' || c == '~' || c == '<' || c == '>' || c == ',' || c == '.' || c == '-' || c == '=')
+				score--;
+		}
+
 		color[a - 1] = 2;
+		
 
 	}
 	else {
