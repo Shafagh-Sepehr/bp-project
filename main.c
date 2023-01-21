@@ -1444,7 +1444,7 @@ void my_callback_on_key_arrival(char c) {
 		color[a] = 0;
 		score++;
 
-		if (c == '!' || c == '@' || c == '#' || c == '$' || c == '%' || c == '^' || c == '&' || c == '*' || c == '(' || c == ')' || c == '_' || c == '+' || c == '[' || c == ']' || c == '{' || c == '}' || c == '\'' || c == '"' || c == '?' || c == '/' || c == '`' || c == '~' || c == '<' || c == '>' || c == ',' || c == '.' || c == '-' || c == '=')
+		if (c == '!' || c == '@' || c == '#' || c == '$' || c == '%' || c == '^' || c == '&' || c == '*' || c == '(' || c == ')' || c == '_' || c == '+' || c == '[' || c == ']' || c == '{' || c == '}' || c == '\'' || c == '"' || c == '?' || c == '/' || c == '`' || c == '~' || c == '<' || c == '>' || c == ',' || c == '.' || c == '-' || c == '=' || c == ':' || c == ';')
 			score++;
 	}
 	else if (c == '\b') {
@@ -1473,14 +1473,16 @@ void my_callback_on_key_arrival(char c) {
 		strcpy(index, global_node->next->str);
 		index_line--;
 
+		print("                      ", "", index_line, ocpl_copy, false, J);
+		color_print2(index, index_line, J);
 	}
 
 }
 
 bool do_wave(bool* ocpl, int wave_time, int* f_score, FILE** words, int level_num, float mul, int* wave) {
-	Node* head, * tail, * tmp_node;
-
-	int w_time, line = 1, final_score = 0, word_ctr = 1, word_ctr2 = 1;
+	Node* head, * tail, * tmp_node, * address_saver[1000] = { NULL };
+	bool does_adrs_match = false;
+	int w_time, line = 1, final_score = 0, word_ctr = 1, word_ctr2 = 1, adrs_svr_ind = 0;
 	*wave = 1;
 
 	w_time = (int)(wave_time * (pow(mul, *wave - 1)) * 1000);
@@ -1510,7 +1512,19 @@ bool do_wave(bool* ocpl, int wave_time, int* f_score, FILE** words, int level_nu
 					global_node = tmp_node;
 				}
 				else {
-					print(tmp_node->str, "", line - i, ocpl, false, J);
+					for (int k = 0; address_saver[k] != NULL; k++)
+						if (address_saver[k] == tmp_node) {
+							does_adrs_match = true;
+							break;
+						}
+					if (((line - i - 1 == 0) && (word_ctr2 > 8) && (rand() % 6 == 0)) || does_adrs_match) {// if a node is supposed to be hidden we save																						its address so the next time we know we have																						to hide it// the line-i-1 only lets the words																						on the first line to be hidden so there wont																						be a word suddenly getting hidden
+						print("*********************", "", line - i, ocpl, false, J);
+						does_adrs_match = false;
+						address_saver[adrs_svr_ind] = tmp_node;
+						adrs_svr_ind++;
+					}
+					else
+						print(tmp_node->str, "", line - i, ocpl, false, J);
 				}
 			}
 			else {
@@ -1522,7 +1536,7 @@ bool do_wave(bool* ocpl, int wave_time, int* f_score, FILE** words, int level_nu
 		}
 
 		_sleep(w_time / 10);
-		line++; word_ctr++;
+		line++; word_ctr++; word_ctr2++;
 		ocpl_clean(ocpl);
 		if (w_time == WAVE_TIME_TO_WIN) {
 			*f_score = final_score;
