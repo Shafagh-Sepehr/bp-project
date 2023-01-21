@@ -599,7 +599,7 @@ void fill(FILE** file) {
 	}
 	fseek(file[3], 0, SEEK_SET);
 
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 10000; i++) {
 		fprintf(file[4], "%s\n", fill_right());
 	}
 	fseek(file[4], 0, SEEK_SET);
