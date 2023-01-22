@@ -23,7 +23,7 @@
 #define WAVE_TIME_TO_WIN 5000
 
 #define MIN_LENGTH_OF_NORMAL_WORD 4
-#define MAX_LENGTH_OF_NORMAL_WORD 7
+#define MAX_LENGTH_OF_NORMAL_WORD 8
 
 #define MIN_LENGTH_OF_LONG_WORD 9
 #define MAX_LENGTH_OF_LONG_WORD 17
@@ -1422,7 +1422,7 @@ bool do_wave(bool* ocpl, int wave_time, int* f_score, FILE** words, int level_nu
 							break;
 							
 						}
-					if (((line - i - 1 == 0) && (word_ctr2 > 3) && (rand() % 5 == 0)) || does_adrs_match) {// if a node is supposed to be hidden we save its address so the next time we know we haveto hide it// the line-i-1 only lets the words on the first line to be hidden so there wont be a word suddenly getting hidden
+					if (((line - i - 1 == 0) && (word_ctr2 > 7) && (rand() % 5 == 0)) || does_adrs_match) {// if a node is supposed to be hidden we save its address so the next time we know we haveto hide it// the line-i-1 only lets the words on the first line to be hidden so there wont be a word suddenly getting hidden
 						print("*********************", "", line - i, ocpl, false, J);
 						does_adrs_match = false;
 						address_saver[adrs_svr_ind] = tmp_node;
