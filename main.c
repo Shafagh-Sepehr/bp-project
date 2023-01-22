@@ -161,13 +161,15 @@ int main()
 		return 1;
 	}
 
-	FILE* usr_inf = fopen("user_info.bin", "rb+");
+	FILE* usr_inf = fopen("user_info.bin", "ab+");
 
 	if (usr_inf == NULL || fseek(usr_inf, 0, SEEK_SET) != 0) {
 		fprintf(stderr, "user_info file didn't open properly.");
 		fcloseall();
 		return 1;
 	}
+	else
+		fseek(usr_inf, 0, SEEK_SET);
 	//////file section end
 
 	fill(words);
@@ -1360,6 +1362,8 @@ void my_callback_on_key_arrival(char c) {
 		color[a] = 1;
 
 	}
+
+
 	color_print2(index, index_line, J);
 	if (is_word_solved()) {
 		Boost = false;
