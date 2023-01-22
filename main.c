@@ -25,8 +25,8 @@
 #define MIN_LENGTH_OF_NORMAL_WORD 4
 #define MAX_LENGTH_OF_NORMAL_WORD 8
 
-#define MIN_LENGTH_OF_LONG_WORD 9
-#define MAX_LENGTH_OF_LONG_WORD 17
+#define MIN_LENGTH_OF_LONG_WORD 12
+#define MAX_LENGTH_OF_LONG_WORD 18
 
 #define MIN_LENGTH_OF_HARD_WORD 6
 #define MAX_LENGTH_OF_HARD_WORD 12
@@ -521,7 +521,9 @@ void fill(FILE** file) {
 }
 
 int l_padding(char str[I], int j) {//middle text
-	return (j - strlen(str)) / 2;
+	int a = (j - strlen(str)) / 2;
+	return (a > 0) ? a : 1;
+	
 }
 
 void ocpl_clean(bool* ocpl) {//line cleaner
@@ -565,6 +567,7 @@ void print_frame2(int _i, int _j) {
 	}
 }
 
+
 void print_frame(int _i, int _j) {
 	gotoxy(0, 0);
 	for (int i = 0; i < _i; i++) {
@@ -582,9 +585,9 @@ void print_frame(int _i, int _j) {
 				printf("%c", 186);
 			else if (i == 0 || i + 1 == _i)
 				printf("%c", 205);
-
 			else
 				printf(" ");
+			
 		}
 		printf("\n");
 	}
@@ -1444,6 +1447,9 @@ bool do_wave(bool* ocpl, int wave_time, int* f_score, FILE** words, int level_nu
 		_sleep(w_time / 10);
 		line++; word_ctr++; word_ctr2++;
 		ocpl_clean(ocpl);
+		//print_frame(I, J);
+
+
 		if (w_time == WAVE_TIME_TO_WIN) {
 			*f_score = final_score;
 			kill_linked_list(&head, &tail);
