@@ -94,36 +94,39 @@ void print(char* str, char* padding, int y, bool* ocpl, bool a, int j);//prints 
 void get_pass(char* password);//gets a 19 char long string but dont show it
 void get_user(char* username);//gets a 19 char long string
 int get_age();//gets a 3 char long number
-bool is_user_unique(FILE* usr_inf, char* username);
-bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, user* user_struct);
-int  main_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
-void loadGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
+bool is_user_unique(FILE* usr_inf, char* username);//searches usr inf file for its purpose
+bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, user* user_struct);//if exists saves it's struct in user_struct
+int  main_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);//main_menu screen: 1-easy game 2-load game ...
+void loadGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);//load game screen
 void change_password(bool* ocpl, FILE* usr_inf, user* user_struct);
 void hide_cursor(void);
 void show_cursor(void);
-unsigned long hash(char* s, char* username);
-void fill(FILE** file);
+unsigned long hash(char* s, char* username);// mixes s string with username and hashes it
+void fill(FILE** file);//fills word files
 char* fill_norm(void);
 char* fill_long(void);
 char* fill_hard(void);
 char* fill_left(void);
 char* fill_right(void);
 void newGame_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
-void color_print2(char* str, int y, int j);
-Node* create_Node();
-void make_linked_list_or_add_nodes(Node** head, Node** tail);
-void kill_linked_list(Node** head, Node** tail);
-void fill_one_node(Node* head, FILE* words);
-void fill_Linked_list(Node* head, int wave, FILE** words);
-void fill_linked_list_one_hand(Node* head, FILE* words);
-void pop_front(Node** head);
+void color_print2(char* str, int y, int j);//prints the index word according to gloval var color.
+Node* create_Node();//allocates memory for it and returns the address
+void make_linked_list_or_add_nodes(Node** head, Node** tail);//addes 10 nodes
+void kill_linked_list(Node** head, Node** tail);// frees all of the linked list and the str in them too
+void fill_one_node(Node* head, FILE* words);//puts a word from the file to the first empty node
+void fill_Linked_list(Node* head, int wave, FILE** words);//fills linked list for easy-medium-hard according to wave number
+void fill_linked_list_one_hand(Node* head, FILE* words);//fills linked list for one hand difficulties
+void pop_front(Node** head);//frees the node that *head is pointing at(also the str) and *head will point to the freed node's next
+
+//bellow functions run the main game
 void easy_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update);
 void medium_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update);
 void hard_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update);
 void left_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update);
 void right_hand_game(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words, int save_in_slot, bool update);
-bool do_wave(bool* ocpl, int wave_time, int* f_score, FILE** words, int level_num, float mul, int* wave);
-void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, int save_in_slot, bool update, int level_num, int wave);
+
+bool do_wave(bool* ocpl, int wave_time, int* f_score, FILE** words, int level_num, float mul, int* wave);//shows waves according to level num wave number and so on. was the hardes function to code
+void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, int save_in_slot, bool update, int level_num, int wave);//fwrites the changes to usr_inf and show a goodbye screen
 
 
 
