@@ -67,35 +67,33 @@ int index_line//line of the typable word is saved in this int
 ,score;//the score is saved in this from my_callback function to be picked up by do_wave function
 Node* global_node//if needed to print index word [after another is typed and removed] when in the do_wave function it's not the next word yet
 , * address_saver_for_boost = NULL;//this has the address of the node which was hidden. for extra score
-bool End = true, Boost = false, busy = true,is_callback_busy=false, is_solved = false, * ocpl_copy,can_AddressSaver_be_changed;
-
-/*Example codes.
-setcolor(1);
-gotoxy(0, 5);
-system("cls");
-*/
-
-
+bool End = true//tells my_callback function to stop working after the game ends and goes onto finish screen
+, Boost = false//tells if the word was hidden and needs extra score
+, busy = true//this tells my_callback function not to work till its false, to avoid confliction with do_wave function
+,is_callback_busy=false//this tells do_wave function not to work till its false, to avoid confliction with my_callback function
+, is_solved = false//this announces if the index word is typed and should be remover and ...
+, * ocpl_copy//this is the only global variable that isnt for communicating with my_call back function. it's a copy of *ocpl declared in main function for out of reach functions 
+,can_AddressSaver_be_changed;//this ensures that the lowest hidden word's address is saved in *address_saver_for_boost
 
 
-void my_callback_on_key_arrival(char c);
-int char_index();
-bool is_word_solved();
+
+void my_callback_on_key_arrival(char c);//when game is ongoing catches the typed characters and...
+int char_index();//returns index of the typable charachter in index word
+bool is_word_solved();//specifies if the index word is correctlly typed and need to be removed
 void reset_color_array();
 void print_frame(int _i, int _j);
 void print_frame2(int _i, int _j);
-void welcome(bool* ocpl);
-int	 l_padding(char str[I], int j);
-void ocpl_clean(bool* ocpl);
-void ocpl_purge_all();
-void account_menu(bool* ocpl, FILE* usr_inf, user* user_struct);
-void sign_up(bool* ocpl, FILE* usr_inf);
-bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct);
-void countdown(int x, int y, int sec);
-void print(char* str, char* padding, int y, bool* ocpl, bool a, int j);
+void welcome(bool* ocpl);//wellcome screen
+int	 l_padding(char str[I], int j);//returns number of space charachters: ' ' needed tp be printed before a string to center it
+void ocpl_clean(bool* ocpl);//clears the lines marked in ocpl funtion
+void account_menu(bool* ocpl, FILE* usr_inf, user* user_struct);//account menu screen: 1-sign up 2-log in 3- exit
+void sign_up(bool* ocpl, FILE* usr_inf);//sign up screen
+bool log_in(bool* ocpl, FILE* usr_inf, user* user_struct);//log in screen
+void countdown(int x, int y, int sec);//shows a counting down number in xy postition starting from sec to zero
+void print(char* str, char* padding, int y, bool* ocpl, bool a, int j);//prints a string centerd in a J character size line
 void get_pass(char* password);//gets a 19 char long string but dont show it
 void get_user(char* username);//gets a 19 char long string
-int get_age();
+int get_age();//gets a 3 char long number
 bool is_user_unique(FILE* usr_inf, char* username);
 bool does_username_exist_and_get_user_struct(FILE* usr_inf, char* username, user* user_struct);
 int  main_menu(bool* ocpl, FILE* usr_inf, user* user_struct, FILE** words);
@@ -545,16 +543,6 @@ void ocpl_clean(bool* ocpl) {//line cleaner
 	}
 }
 
-void ocpl_purge_all() {
-	char space[] = "                        ";//25 spaces
-	for (int i = 0; i < I; i++) {
-
-		gotoxy(1, i);//goes to the line in which text is written
-		printf("%s", space);//over writes the line with space
-
-	}
-	ocpl_clean(ocpl_copy);
-}
 
 void print_frame2(int _i, int _j) {
 	gotoxy(0, 0);
@@ -683,13 +671,14 @@ void get_pass(char* password) {
 
 int get_age() {
 	char username[5];
-
+	char a;
 	show_cursor();
 
 	int p = 0;
 	do {
-		username[p] = getch();
-		if (username[p] == '\b') {
+		a = getch();
+		if (a == '\b') {
+			username[p] = a;
 			if (p == 0) {
 
 			}
@@ -701,17 +690,19 @@ int get_age() {
 				p--;
 			}
 		}
+		else if (!(((a - '0') >= 0 && (a - '0') < 10) ||a=='\r')) {}
 		else if (p >= 3) {
-
+			username[p] = a;
 		}
-		else if (username[p] != '\r') {
+		else if (a != '\r') {
+			username[p] = a;
 			printf("%c", username[p]);
 			p++;
 		}
 
 	} while (p == 0 || username[p] != '\r');
 	username[p] = '\0';
-
+	hide_cursor();
 	switch (p)
 	{
 	case 1: return username[0] - '0';
@@ -723,7 +714,7 @@ int get_age() {
 
 
 
-	hide_cursor();
+	
 }
 
 void get_user(char* username) {
