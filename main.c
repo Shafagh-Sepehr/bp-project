@@ -58,12 +58,16 @@ typedef struct Node {
 	struct Node* next, * prev;
 } Node;
 
-char index[25];
-bool is_solved = false;
-int index_line, color[25], score;//color[x]=  0->green 1->yellow 2->black
-bool* ocpl_copy;
-Node* global_node, * address_saver_for_boost = NULL;
-bool End = true, Boost = false;
+
+//almost all of these global variables are for my_callback and do_wave function
+
+char index[25];//the typable word is saved in this
+int index_line//line of the typable word is saved in this int
+,color[25]//color[x]=  0->green 1->yellow 2->black
+,score;//the score is saved in this from my_callback function to be picked up by do_wave function
+Node* global_node//if needed to print index word [after another is typed and removed] when in the do_wave function it's not the next word yet
+, * address_saver_for_boost = NULL;//this has the address of the node which was hidden. for extra score
+bool End = true, Boost = false, busy = true,is_callback_busy=false, is_solved = false, * ocpl_copy,can_AddressSaver_be_changed;
 
 /*Example codes.
 setcolor(1);
@@ -126,6 +130,7 @@ void finish(bool win, int score, FILE* usr_inf, user* user_struct, bool* ocpl, i
 
 
 
+
 int main()
 {
 	srand(time(NULL));
@@ -162,15 +167,16 @@ int main()
 	}
 
 	FILE* usr_inf = fopen("user_info.bin", "ab+");
+	fclose(usr_inf);
+	usr_inf = fopen("user_info.bin", "rb+");
+
 
 	if (usr_inf == NULL || fseek(usr_inf, 0, SEEK_SET) != 0) {
 		fprintf(stderr, "user_info file didn't open properly.");
 		fcloseall();
 		return 1;
 	}
-	else
-		fseek(usr_inf, 0, SEEK_SET);
-	//////file section end
+	
 
 	fill(words);
 
@@ -244,7 +250,7 @@ void fill_Linked_list(Node* head, int wave, FILE** words) {
 	switch (wave)
 	{
 	case 1:
-		nrm = 9; lng = 0; hrd = 1;
+		nrm = 9; lng = 1; hrd = 0;
 
 		break;
 	case 2:
@@ -1328,7 +1334,8 @@ void reset_color_array() {//sets all values to 2
 void my_callback_on_key_arrival(char c) {
 	if (End)
 		return;
-
+	
+	
 	int len = strlen(index);
 
 	int a = char_index();
@@ -1362,13 +1369,21 @@ void my_callback_on_key_arrival(char c) {
 		color[a] = 1;
 
 	}
-
-
+	
+	
+	
+	
+	while (busy) {}
+	is_callback_busy = true;
 	color_print2(index, index_line, J);
+	is_callback_busy = false;
+
 	if (is_word_solved()) {
 		Boost = false;
-
+		while (busy) {}
+		is_callback_busy = true;
 		print("                      ", "", index_line, ocpl_copy, false, J);
+		is_callback_busy = false;
 		is_solved = true;
 
 		reset_color_array();
@@ -1382,10 +1397,17 @@ void my_callback_on_key_arrival(char c) {
 				Boost = true;
 		
 
-
+		while (busy) {}
+		is_callback_busy = true;
 		print("                      ", "", index_line, ocpl_copy, false, J);
+		is_callback_busy = false;
+		while (busy) {}
+		is_callback_busy = true;
 		color_print2(index, index_line, J);
+		is_callback_busy = false;
 	}
+
+	is_callback_busy = false;
 
 }
 
@@ -1409,45 +1431,67 @@ bool do_wave(bool* ocpl, int wave_time, int* f_score, FILE** words, int level_nu
 
 
 	while (1) {
-
+		
 		tmp_node = head;
 
+		can_AddressSaver_be_changed = true;
 
+		
+		while (is_callback_busy) {}
 		for (int i = 0; i < 23; i++) {
 			if ((line - i) > 0) {//&& ind <= i + 1
 				if (!i) {
 					index_line = line - i;
 					strcpy(index, tmp_node->str);
+					while (is_callback_busy) {}
+					busy = true;
 					color_print2(index, index_line, J);
+					busy = false;
 					global_node = tmp_node;
 				}
 				else {
 					for (int k = 0; address_saver[k] != NULL; k++)
 						if (address_saver[k] == tmp_node) {
 							does_adrs_match = true;
-							address_saver_for_boost = tmp_node;
+							if (can_AddressSaver_be_changed) {
+								address_saver_for_boost = tmp_node;
+								can_AddressSaver_be_changed = false;
+							}
+
 							break;
 							
 						}
 					if (((line - i - 1 == 0) && (word_ctr2 > 7) && (rand() % 5 == 0)) || does_adrs_match) {// if a node is supposed to be hidden we save its address so the next time we know we haveto hide it// the line-i-1 only lets the words on the first line to be hidden so there wont be a word suddenly getting hidden
+
+						while (is_callback_busy) {}
+						busy = true;
 						print("*********************", "", line - i, ocpl, false, J);
+						busy = false;
+
 						does_adrs_match = false;
 						address_saver[adrs_svr_ind] = tmp_node;
 						adrs_svr_ind++;
 
 					}
-					else
+					else{
+						while (is_callback_busy) {}
+						busy = true;
+
 						print(tmp_node->str, "", line - i, ocpl, false, J);
+						busy = false;
+					}
 				}
 			}
 			else {
 				break;
+				
 			}
 
 			tmp_node = tmp_node->next;
 
 		}
 
+		busy = false;
 		_sleep(w_time / 10);
 		line++; word_ctr++; word_ctr2++;
 		ocpl_clean(ocpl);
