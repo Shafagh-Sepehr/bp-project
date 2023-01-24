@@ -693,7 +693,12 @@ int get_age() {
 				p--;
 			}
 		}
-		else if (!(((a - '0') >= 0 && (a - '0') < 10) ||a=='\r')) {}
+		else if (a == '\r'){
+			username[p] = a;
+
+		}
+		else if (!(((a - '0') >= 0 && (a - '0') < 10))) {}
+		
 		else if (p >= 3) {
 			username[p] = a;
 		}
