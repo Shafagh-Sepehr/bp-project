@@ -4,7 +4,7 @@
 ////
 
 TYPING GAME
-
+#######yo man#######
 the words fall from above, enter them correctly to remove them.
 if a word touches the bottem line you will lose
 the words come in waves and each wave contains 10 words, when 10 words are shown the speed of words' fall increases
