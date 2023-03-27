@@ -16,6 +16,6 @@ you can change your password, log out or exit the game
 
 the game has five difficulties: easy, medium, hard, left hand and right hand
 
-////
+//////
 
 this game is written in C.
