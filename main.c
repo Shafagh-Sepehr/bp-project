@@ -34,10 +34,6 @@
 #define MIN_LENGTH_OF_ONE_HAND_WORD 6
 #define MAX_LENGTH_OF_ONE_HAND_WORD 10
 
-/*
-this part is a test for git. it will be removed
-
-*/
 
 typedef struct gameinfo {
 	int xp, level_difficulty, high_score;
