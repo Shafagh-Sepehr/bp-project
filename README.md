@@ -1,8 +1,6 @@
 پروژه ی مبانی برنامه سازی
 10/1401
 
-//////
-
 TYPING GAME
 
 the words fall from above, enter them correctly to remove them.
@@ -15,7 +13,5 @@ once you're in, you can start a new game or load one of your last three games wi
 you can change your password, log out or exit the game
 
 the game has five difficulties: easy, medium, hard, left hand and right hand
-
-//////
 
 this game is written in C.
